@@ -11,6 +11,15 @@ export default defineConfig({
             ssr: 'resources/js/ssr.tsx',
             refresh: true,
         }),
+        server({
+            https: true,
+            host: 'localhost',
+            port: 5173,
+            hmr: {
+                protocol: 'wss',
+                host: 'birthday.balikgstudio.eu',
+            },
+        })
         react({
             babel: {
                 plugins: ['babel-plugin-react-compiler'],
