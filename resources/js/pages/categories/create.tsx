@@ -14,7 +14,7 @@ const breadcrumbs: BreadcrumbItem[] = [
 
 export default function CreateCategory() {
     const [name, setName] = useState('');
-    const [processing, setProcessing] = useState(false);
+    const [processing] = useState(false);
 
     const submit = (e: React.FormEvent) => {
         e.preventDefault();
