@@ -42,7 +42,7 @@ export interface User {
     [key: string]: unknown; // This allows for additional properties...
 }
 
-export interface PaginatedResponse<T = any> {
+export interface PaginatedResponse<T = Category | null> {
     current_page: number;
     data: T[];
     first_page_url: string;
