@@ -30,7 +30,7 @@ export default [
         },
     },
     {
-        ignores: ['vendor', 'node_modules', 'public', 'bootstrap/ssr', 'tailwind.config.js', 'ziggy-js.js'],
+        ignores: ['vendor', 'node_modules', 'public', 'bootstrap/ssr', 'tailwind.config.js', 'js/ziggy-js.js'],
     },
     prettier, // Turn off all rules that might conflict with Prettier
 ];
