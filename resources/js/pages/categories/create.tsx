@@ -1,58 +1,57 @@
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import AppLayout from '@/layouts/app-layout';
-import categoriesRoutes from '@/routes/categories';
 import { BreadcrumbItem } from '@/types';
-import { Head, router } from '@inertiajs/react';
-import { useState } from 'react';
+import { Head, useForm } from '@inertiajs/react';
+import { Label } from '@radix-ui/react-dropdown-menu';
+import { route } from 'ziggy-js';
+
 
 const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Categories', href: '/categories' },
-    { title: 'Create', href: '/categories/create' },
 ];
 
-export default function CreateCategory() {
-    const [name, setName] = useState('');
-    const [processing] = useState(false);
+export default function CategoriesIndex() {
+    const { data, setData, post, processing, errors } = useForm({
+        catName: '',
+    });
 
-    const submit = (e: React.FormEvent) => {
+    function submit(e: React.FormEvent) {
         e.preventDefault();
-
-        router.post(categoriesRoutes.store().url, {
-            name,
-        });
-    };
+        post(route('categories.store'));
+    }
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title="Create Category" />
-
-            <form onSubmit={submit} className="max-w-md space-y-4">
-                <div>
-                    <Label htmlFor="name">Category name</Label>
-                    <Input
-                        id="name"
-                        value={name}
-                        onChange={(e) => setName(e.target.value)}
-                        required
-                    />
-                </div>
-
-                <div className="flex gap-2">
-                    <Button type="submit" disabled={processing}>
-                        Create
-                    </Button>
+            <Head title="Categories" />
+            <div className="w-8/12 p-4">
+                <form onSubmit={submit}>
+                    <div className="gap-1.5">
+                        <Label>Category name</Label>
+                        <Input
+                            placeholder="Category name"
+                            value={data.catName}
+                            onChange={(e) => setData('catName', e.target.value)}
+                            className={errors.catName ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : ''}
+                            aria-invalid={!!errors.catName}
+                            aria-describedby={errors.catName ? 'catName-error' : undefined}
+                        ></Input>
+                        {errors.catName && (
+                            <span className="text-sm text-red-600">
+                                {errors.catName}
+                            </span>
+                        )}
+                    </div>
 
                     <Button
-                        type="button"
-                        variant="outline"
-                        onClick={() => router.get(categoriesRoutes.index().url)}
+                        className="mt-4"
+                        type="submit"
+                        disabled={processing}
                     >
-                        Cancel
+                        Add Category
                     </Button>
-                </div>
-            </form>
+                </form>
+            </div>
         </AppLayout>
     );
 }
