@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\StoreCategoryRequest;
 use App\Models\Category;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -13,11 +14,11 @@ class CategoryController extends Controller
      */
     public function index()
     {
-          $categories = Category::latest()->paginate(20);
+        $categories = Category::latest()->paginate(20);
 
-           return Inertia::render('categories/index', [
-               'categories' => $categories,
-           ]);
+        return Inertia::render('categories/index', [
+            'categories' => $categories,
+        ]);
     }
 
     /**
@@ -31,14 +32,12 @@ class CategoryController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+    public function store(StoreCategoryRequest $request)
     {
-        $request->validate([
-            'name' => 'required|string|max:255',
-        ]);
+       
 
         Category::create([
-            'name' => $request->name,
+            'name' => $request->catName,
         ]);
 
         $success = 'Category created successfully.';
