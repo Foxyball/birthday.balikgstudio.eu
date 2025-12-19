@@ -2,50 +2,73 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import AppLayout from '@/layouts/app-layout';
-import categoriesRoutes from '@/routes/categories';
-import { BreadcrumbItem } from '@/types';
-import { Head, router } from '@inertiajs/react';
-import { useState } from 'react';
+import { Head, router, useForm } from '@inertiajs/react';
+import { route } from 'ziggy-js';
 
-const breadcrumbs = (id: number, name: string): BreadcrumbItem[] => [
-    { title: 'Categories', href: '/categories' },
-    { title: name, href: `/categories/${id}` },
-    { title: 'Edit', href: `/categories/${id}/edit` },
-];
+interface Category {
+    id: number;
+    name: string;
+}
 
-export default function EditCategory({ category }: { category: { id: number; name: string } }) {
-    const [name, setName] = useState(category.name || '');
-    const [processing] = useState(false);
+interface Props {
+    category: Category;
+}
 
-    const submit = (e: React.FormEvent) => {
+export default function Edit({ category }: Props) {
+    const { data, setData, put, processing, errors } = useForm({
+        name: category.name,
+    });
+
+    const handleUpdate = (e: React.FormEvent) => {
         e.preventDefault();
-        router.put(categoriesRoutes.update(category.id).url, { name });
+        put(route('categories.update', category.id));
     };
 
     return (
-        <AppLayout breadcrumbs={breadcrumbs(category.id, category.name)}>
+        <AppLayout
+            breadcrumbs={[
+                {
+                    title: `Edit Category`,
+                    href: `/categories/${category.id}/edit`,
+                },
+            ]}
+        >
             <Head title={`Edit Category: ${category.name}`} />
 
-            <form onSubmit={submit} className="max-w-md space-y-4">
+            <form onSubmit={handleUpdate} className="max-w-md space-y-4">
                 <div>
                     <Label htmlFor="name">Category name</Label>
                     <Input
                         id="name"
-                        value={name}
-                        onChange={(e) => setName(e.target.value)}
+                        value={data.name}
+                        onChange={(e) => setData('name', e.target.value)}
                         required
+                        className={
+                            errors.name
+                                ? 'border-red-500 focus:border-red-500 focus:ring-red-500'
+                                : ''
+                        }
+                        aria-invalid={!!errors.name}
+                        aria-describedby={
+                            errors.name ? 'name-error' : undefined
+                        }
                     />
+                    {errors.name && (
+                        <span id="name-error" className="text-sm text-red-600">
+                            {errors.name}
+                        </span>
+                    )}
                 </div>
 
                 <div className="flex gap-2">
                     <Button type="submit" disabled={processing}>
-                        Update
+                        Update Category
                     </Button>
 
                     <Button
                         type="button"
                         variant="outline"
-                        onClick={() => router.get(categoriesRoutes.index().url)}
+                        onClick={() => router.visit(route('categories.index'))}
                     >
                         Cancel
                     </Button>

@@ -11,7 +11,7 @@ import {
 } from '@/components/ui/table';
 import AppLayout from '@/layouts/app-layout';
 import categoriesRoutes from '@/routes/categories';
-import { BreadcrumbItem, PaginatedResponse } from '@/types';
+import { BreadcrumbItem, PaginatedResponse, type SharedData } from '@/types';
 import { Head, router, usePage } from '@inertiajs/react';
 import React from 'react';
 
@@ -22,7 +22,7 @@ interface Category {
     updated_at?: string | null;
 }
 
-interface CategoriesPageProps {
+interface Props extends SharedData {
     categories: PaginatedResponse<Category>;
 }
 
@@ -42,7 +42,7 @@ const formatDate = (date?: string | null) =>
         : 'N/A';
 
 export default function CategoriesIndex() {
-    const { categories } = usePage<CategoriesPageProps>().props;
+    const { categories } = usePage<Props>().props;
 
     const [localCategories, setLocalCategories] = React.useState(
         categories.data ?? ([] as Category[]),
