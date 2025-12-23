@@ -21,12 +21,51 @@ class DashboardController extends Controller
             ->whereDay('birthday', $today->day)
             ->count();
 
+        // Upcoming birthdays for the authenticated user (next 30 days)
+        $contacts = Contact::query()
+            ->where('user_id', Auth::id())
+            ->get(['id', 'name', 'birthday']);
+
+        $upcomingBirthdays = $contacts
+            ->map(function ($contact) use ($today) {
+                $birth = Carbon::parse($contact->birthday);
+
+                // Handle leap-year birthdays by clamping to the month's max day for the target year
+                $makeDateForYear = function (int $year) use ($birth) {
+                    $daysInMonth = Carbon::create($year, $birth->month, 1)->daysInMonth;
+                    $day = min($birth->day, $daysInMonth);
+                    return Carbon::create($year, $birth->month, $day)->startOfDay();
+                };
+
+                $next = $makeDateForYear($today->year);
+                if ($next->lt($today)) {
+                    $next = $makeDateForYear($today->year + 1);
+                }
+
+                $daysLeft = $today->diffInDays($next, false);
+                $ageTurning = $next->year - $birth->year;
+
+                return [
+                    'id' => $contact->id,
+                    'name' => $contact->name,
+                    'birthday' => $birth->toDateString(),
+                    'nextBirthday' => $next->toDateString(),
+                    'daysLeft' => $daysLeft,
+                    'ageTurning' => $ageTurning,
+                ];
+            })
+            ->filter(fn ($b) => $b['daysLeft'] >= 0 && $b['daysLeft'] <= 30)
+            ->sortBy('daysLeft')
+            ->values()
+            ->take(10);
+
         return Inertia::render('dashboard', [
             'kpis' => [
                 'contacts' => $contactsTotal,
                 'users' => $usersTotal,
                 'birthdaysToday' => $birthdaysToday,
             ],
+            'upcomingBirthdays' => $upcomingBirthdays,
         ]);
     }
 }
