@@ -19,7 +19,7 @@ return new class extends Migration
             $table->string('email')->unique();
             $table->string('phone')->nullable();
             $table->date('birthday');
-             $table->text('image')->nullable();
+            $table->text('image')->nullable();
             $table->timestamps();
         });
     }

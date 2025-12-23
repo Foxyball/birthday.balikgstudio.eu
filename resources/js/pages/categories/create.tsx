@@ -11,7 +11,7 @@ const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Categories', href: '/categories' },
 ];
 
-export default function CategoriesIndex() {
+export default function Categories() {
     const { data, setData, post, processing, errors } = useForm({
         catName: '',
     });
