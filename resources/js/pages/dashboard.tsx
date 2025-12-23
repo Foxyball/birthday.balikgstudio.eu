@@ -1,9 +1,14 @@
 import { PlaceholderPattern } from '@/components/ui/placeholder-pattern';
 import AppLayout from '@/layouts/app-layout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { dashboard } from '@/routes';
+import * as contactRoutes from '@/routes/contacts';
 import { type BreadcrumbItem, type SharedData } from '@/types';
-import { Head, usePage } from '@inertiajs/react';
+import { Head, Link, usePage } from '@inertiajs/react';
+import { format } from 'date-fns';
+import { CalendarIcon, ArrowRight } from 'lucide-react';
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
@@ -12,16 +17,26 @@ const breadcrumbs: BreadcrumbItem[] = [
     },
 ];
 
+type UpcomingBirthday = {
+    id: number;
+    name: string;
+    birthday: string; // ISO date (YYYY-MM-DD)
+    nextBirthday: string; // ISO date for upcoming occurrence
+    daysLeft: number;
+    ageTurning: number;
+};
+
 interface Props extends SharedData {
     kpis: {
         contacts: number;
         users: number;
         birthdaysToday: number;
     };
+    upcomingBirthdays: UpcomingBirthday[];
 }
 
 export default function Dashboard() {
-    const { kpis } = usePage<Props>().props;
+    const { kpis, upcomingBirthdays } = usePage<Props>().props;
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Dashboard" />
@@ -55,9 +70,60 @@ export default function Dashboard() {
                         </CardContent>
                     </Card>
                 </div>
-                <div className="relative min-h-[100vh] flex-1 overflow-hidden rounded-xl border border-sidebar-border/70 md:min-h-min dark:border-sidebar-border">
-                    <PlaceholderPattern className="absolute inset-0 size-full stroke-neutral-900/20 dark:stroke-neutral-100/20" />
-                </div>
+                <Card className="relative flex-1 overflow-hidden rounded-xl border border-sidebar-border/70">
+                    <CardHeader>
+                        <CardTitle className="flex items-center gap-2">
+                            <CalendarIcon className="h-5 w-5" />
+                            Upcoming Birthdays
+                        </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                        {upcomingBirthdays && upcomingBirthdays.length > 0 ? (
+                            <Table>
+                                <TableHeader>
+                                    <TableRow>
+                                        <TableHead>Name</TableHead>
+                                        <TableHead>Date</TableHead>
+                                        <TableHead>In</TableHead>
+                                        <TableHead>Turns</TableHead>
+                                        <TableHead></TableHead>
+                                    </TableRow>
+                                </TableHeader>
+                                <TableBody>
+                                    {upcomingBirthdays.map((b) => (
+                                        <TableRow key={b.id}>
+                                            <TableCell className="font-medium">{b.name}</TableCell>
+                                            <TableCell>
+                                                {format(new Date(b.nextBirthday), 'MMM d')}
+                                            </TableCell>
+                                            <TableCell>
+                                                <Badge variant="secondary">{b.daysLeft === 0 ? 'today' : `in ${b.daysLeft} day${b.daysLeft === 1 ? '' : 's'}`}</Badge>
+                                            </TableCell>
+                                            <TableCell>
+                                                <Badge> {b.ageTurning}</Badge>
+                                            </TableCell>
+                                            <TableCell className="text-right">
+                                                <Link
+                                                    href={contactRoutes.edit(b.id).url}
+                                                    className="inline-flex items-center gap-1 text-sm text-foreground underline decoration-neutral-300 underline-offset-4 transition-colors hover:decoration-current"
+                                                >
+                                                    View <ArrowRight className="h-3.5 w-3.5" />
+                                                </Link>
+                                            </TableCell>
+                                        </TableRow>
+                                    ))}
+                                </TableBody>
+                            </Table>
+                        ) : (
+                            <div className="relative min-h-[300px]">
+                                <PlaceholderPattern className="absolute inset-0 size-full stroke-neutral-900/20 dark:stroke-neutral-100/20" />
+                                <div className="relative z-10 flex h-full items-center justify-center text-sm text-muted-foreground">
+                                    No upcoming birthdays in the next 30 days.
+                                </div>
+                            </div>
+                        )}
+                    </CardContent>
+                </Card>
             </div>
         </AppLayout>
     );
