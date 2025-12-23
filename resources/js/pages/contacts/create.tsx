@@ -166,7 +166,7 @@ export default function Contacts({
 
                     {/* Birthday – dropdown caption date picker */}
                     <div className="gap-1.5 mb-3">
-                        <Label htmlFor="birthday">Birthday</Label>
+                        <Label>Birthday</Label>
 
                         <Popover>
                             <PopoverTrigger asChild>
