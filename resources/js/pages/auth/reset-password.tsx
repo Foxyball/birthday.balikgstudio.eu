@@ -18,6 +18,7 @@ export default function ResetPassword({ token, email }: ResetPasswordProps) {
         <AuthLayout
             title="Reset password"
             description="Please enter your new password below"
+            imageUrl="/images/auth-left.svg"
         >
             <Head title="Reset password" />
 

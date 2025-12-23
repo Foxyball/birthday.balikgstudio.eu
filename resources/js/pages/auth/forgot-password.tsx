@@ -16,6 +16,7 @@ export default function ForgotPassword({ status }: { status?: string }) {
         <AuthLayout
             title="Forgot password"
             description="Enter your email to receive a password reset link"
+            imageUrl="/images/auth-left.svg"
         >
             <Head title="Forgot password" />
 
