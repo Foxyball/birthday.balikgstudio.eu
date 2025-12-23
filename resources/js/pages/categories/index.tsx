@@ -57,6 +57,7 @@ export default function CategoriesIndex() {
         router.delete(categoriesRoutes.destroy(categoryToDelete.id).url, {
             onError: () => setLocalCategories(previous),
             preserveScroll: true,
+            preserveState: false,
         });
     };
 

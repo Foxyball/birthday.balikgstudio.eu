@@ -56,6 +56,7 @@ export default function CategoryActions({ category, onDelete }: CategoryActionsP
         setDeleting(true);
         router.delete(categories.destroy(category.id).url, {
             preserveScroll: true,
+            preserveState: false,
             onFinish: () => {
                 setOpen(false);
                 setDeleting(false);
