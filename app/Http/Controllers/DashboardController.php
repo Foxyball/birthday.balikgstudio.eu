@@ -13,7 +13,7 @@ class DashboardController extends Controller
     public function index()
     {
         $today = Carbon::today();
-        $contactsTotal = Contact::count();
+        $contactsTotal = Contact::where('user_id', Auth::id())->count();
         $usersTotal = User::count();
         $birthdaysToday = Contact::query()
             ->where('user_id', Auth::id())

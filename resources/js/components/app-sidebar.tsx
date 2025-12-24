@@ -11,30 +11,45 @@ import {
 } from '@/components/ui/sidebar';
 import { dashboard } from '@/routes';
 import { type NavItem } from '@/types';
-import { Link } from '@inertiajs/react';
-import {Folder, LayoutGrid, User } from 'lucide-react';
+import { Link, usePage } from '@inertiajs/react';
+import { Folder, LayoutGrid, User } from 'lucide-react';
 import AppLogo from './app-logo';
 
-const mainNavItems: NavItem[] = [
-    {
-        title: 'Dashboard',
-        href: dashboard(),
-        icon: LayoutGrid,
-    },
-    {
-        title: 'Categories',
-        href: '/categories',
-        icon: Folder,
-    },
-    {
-        title: 'Contacts',
-        href: '/contacts',
-        icon: User,
-    }
-];
-
-
 export function AppSidebar() {
+    type PageProps = { auth?: { user?: { role?: string | number } } };
+    const { auth } = usePage<PageProps>().props;
+    const isAdmin = String(auth?.user?.role ?? '0') === '1';
+    const mainNavItems: NavItem[] = [
+        {
+            title: 'Dashboard',
+            href: dashboard(),
+            icon: LayoutGrid,
+        },
+        ...(isAdmin
+            ? [
+                  {
+                      title: 'Categories',
+                      href: '/categories',
+                      icon: Folder,
+                  },
+              ]
+            : []),
+
+        {
+            title: 'Contacts',
+            href: '/contacts',
+            icon: User,
+        },
+        ...(isAdmin
+            ? [
+                  {
+                      title: 'Users',
+                      href: '/users',
+                      icon: User,
+                  },
+              ]
+            : []),
+    ];
     return (
         <Sidebar collapsible="icon" variant="inset">
             <SidebarHeader>

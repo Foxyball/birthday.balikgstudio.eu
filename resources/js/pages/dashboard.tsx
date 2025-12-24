@@ -36,7 +36,8 @@ interface Props extends SharedData {
 }
 
 export default function Dashboard() {
-    const { kpis, upcomingBirthdays } = usePage<Props>().props;
+    const { kpis, upcomingBirthdays, auth } = usePage<Props>().props;
+    const isAdmin = String(auth?.user?.role ?? '0') === '1';
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Dashboard" />
@@ -51,6 +52,7 @@ export default function Dashboard() {
                             <div className="text-sm text-muted-foreground">Total contacts</div>
                         </CardContent>
                     </Card>
+    {isAdmin &&
                     <Card>
                         <CardHeader>
                             <CardTitle>Users</CardTitle>
@@ -60,6 +62,8 @@ export default function Dashboard() {
                             <div className="text-sm text-muted-foreground">Total users</div>
                         </CardContent>
                     </Card>
+    }
+                    
                     <Card>
                         <CardHeader>
                             <CardTitle>Birthdays Today</CardTitle>
