@@ -28,7 +28,7 @@ export default function Login({
             description="Enter your email and password below to log in"
             imageUrl="/images/auth-left.svg"
         >
-            <Head title="Log in" />
+            <Head title="Login" />
 
             <Form
                 {...store.form()}
