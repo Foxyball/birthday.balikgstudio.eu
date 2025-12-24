@@ -18,7 +18,7 @@ import AppLogo from './app-logo';
 export function AppSidebar() {
     type PageProps = { auth?: { user?: { role?: string | number } } };
     const { auth } = usePage<PageProps>().props;
-    const isAdmin = Number(auth?.user?.role ?? 0) === 1;
+    const isAdmin = String(auth?.user?.role ?? '0') === '1';
     const mainNavItems: NavItem[] = [
         {
             title: 'Dashboard',

@@ -36,8 +36,8 @@ interface Props extends SharedData {
 }
 
 export default function Dashboard() {
-    const { kpis, upcomingBirthdays } = usePage<Props>().props;
-    const isAdmin = Number(usePage<Props>().props.auth?.user?.role ?? 0) === 1;
+    const { kpis, upcomingBirthdays, auth } = usePage<Props>().props;
+    const isAdmin = String(auth?.user?.role ?? '0') === '1';
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Dashboard" />
