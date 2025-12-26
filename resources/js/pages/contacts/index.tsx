@@ -1,5 +1,6 @@
 import ContactActions from '@/components/contacts/ContactActions';
 import { Button } from '@/components/ui/button';
+import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import {
     Table,
     TableBody,
@@ -94,37 +95,32 @@ export default function ContactsIndex() {
 
                 <Table>
                     <TableCaption>A list of contacts</TableCaption>
-
                     <TableHeader>
                         <TableRow>
-                            <TableHead className="w-[100px]">ID</TableHead>
                             <TableHead>Name</TableHead>
-                            <TableHead>Image</TableHead>
                             <TableHead>Email</TableHead>
                             <TableHead>Phone</TableHead>
                             <TableHead>Birthday</TableHead>
                             <TableHead className="text-right">Action</TableHead>
                         </TableRow>
                     </TableHeader>
-
                     <TableBody>
                         {localContacts.length > 0 ? (
                             localContacts.map((contact) => (
                                 <TableRow key={contact.id}>
-                                    <TableCell className="font-medium">
-                                        {contact.id}
-                                    </TableCell>
-                                    <TableCell>{contact.name}</TableCell>
                                     <TableCell>
-                                        {contact.image ? (
-                                            <img
-                                                src={contact.image}
-                                                alt={contact.name}
-                                                className="h-10 w-10 rounded-full object-cover border"
-                                            />
-                                        ) : (
-                                            '—'
-                                        )}
+                                        <div className="flex items-center gap-3">
+                                            <Avatar className="size-9">
+                                                {contact.image ? (
+                                                    <AvatarImage src={contact.image} alt={contact.name} />
+                                                ) : (
+                                                    <AvatarFallback className="bg-muted text-foreground">
+                                                        {contact.name?.trim()?.charAt(0)?.toUpperCase() ?? '?'}
+                                                    </AvatarFallback>
+                                                )}
+                                            </Avatar>
+                                            <span className="font-medium">{contact.name}</span>
+                                        </div>
                                     </TableCell>
                                     <TableCell>{contact.email}</TableCell>
                                     <TableCell>
@@ -155,20 +151,15 @@ export default function ContactsIndex() {
                                             '—'
                                         )}
                                     </TableCell>
-                                    <TableCell>
-                                        {formatBirthday(contact.birthday)}
-                                    </TableCell>
+                                    <TableCell>{formatBirthday(contact.birthday)}</TableCell>
                                     <TableCell className="text-right">
-                                        <ContactActions
-                                            contact={contact}
-                                            onDelete={handleDelete}
-                                        />
+                                        <ContactActions contact={contact} onDelete={handleDelete} />
                                     </TableCell>
                                 </TableRow>
                             ))
                         ) : (
                             <TableRow>
-                                <TableCell colSpan={8} className="text-center">
+                                <TableCell colSpan={7} className="text-center">
                                     No contacts found.
                                 </TableCell>
                             </TableRow>
