@@ -14,6 +14,10 @@ import contactsRoutes from '@/routes/contacts';
 import { BreadcrumbItem, PaginatedResponse, type SharedData } from '@/types';
 import { Head, router, usePage } from '@inertiajs/react';
 import React from 'react';
+import { useClipboard } from '@/hooks/use-clipboard';
+import { Copy, Check } from 'lucide-react';
+import { toast } from 'sonner';
+import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip';
 
 interface Contact {
     id: number;
@@ -52,6 +56,19 @@ export default function ContactsIndex() {
     const [localContacts, setLocalContacts] = React.useState(
         contacts.data ?? ([] as Contact[]),
     );
+
+    const [, copy] = useClipboard();
+    const [justCopiedPhone, setJustCopiedPhone] = React.useState<string | null>(null);
+    const handleCopyPhone = React.useCallback(async (phone: string) => {
+        const ok = await copy(phone);
+        if (ok) {
+            setJustCopiedPhone(phone);
+            toast.success('Phone number copied to clipboard');
+            window.setTimeout(() => setJustCopiedPhone(null), 1500);
+        } else {
+            toast.error('Failed to copy phone number');
+        }
+    }, [copy]);
 
     const handleDelete = (contactToDelete: Contact) => {
         const previous = localContacts;
@@ -115,7 +132,34 @@ export default function ContactsIndex() {
                                         )}
                                     </TableCell>
                                     <TableCell>{contact.email}</TableCell>
-                                    <TableCell>{contact.phone ?? '—'}</TableCell>
+                                    <TableCell>
+                                        {contact.phone ? (
+                                            <div className="flex items-center gap-2">
+                                                <span>{contact.phone}</span>
+                                                <Tooltip>
+                                                    <TooltipTrigger asChild>
+                                                        <Button
+                                                            variant="ghost"
+                                                            size="icon"
+                                                            aria-label="Copy phone number"
+                                                            onClick={() => handleCopyPhone(contact.phone!)}
+                                                        >
+                                                            {justCopiedPhone === contact.phone ? (
+                                                                <Check className="size-4" />
+                                                            ) : (
+                                                                <Copy className="size-4" />
+                                                            )}
+                                                        </Button>
+                                                    </TooltipTrigger>
+                                                    <TooltipContent>
+                                                        Copy phone number
+                                                    </TooltipContent>
+                                                </Tooltip>
+                                            </div>
+                                        ) : (
+                                            '—'
+                                        )}
+                                    </TableCell>
                                     <TableCell>
                                         {formatDate(contact.birthday)}
                                     </TableCell>
