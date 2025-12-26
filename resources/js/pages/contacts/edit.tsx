@@ -10,17 +10,10 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select';
-import { Calendar } from '@/components/ui/calendar';
-import {
-    Popover,
-    PopoverContent,
-    PopoverTrigger,
-} from '@/components/ui/popover';
- 
-import { ChevronDownIcon } from 'lucide-react';
+import { CalendarIcon } from 'lucide-react';
 import { route } from 'ziggy-js';
-import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
+import React from 'react';
 
 type Category = {
     id: number;
@@ -60,9 +53,63 @@ export default function Edit({
         category_id: contact.category_id,
     });
 
+    const months = React.useMemo(
+        () => [
+            { value: '1', label: 'January' },
+            { value: '2', label: 'February' },
+            { value: '3', label: 'March' },
+            { value: '4', label: 'April' },
+            { value: '5', label: 'May' },
+            { value: '6', label: 'June' },
+            { value: '7', label: 'July' },
+            { value: '8', label: 'August' },
+            { value: '9', label: 'September' },
+            { value: '10', label: 'October' },
+            { value: '11', label: 'November' },
+            { value: '12', label: 'December' },
+        ],
+        [],
+    );
+
+    const parseBirthday = (b: string | undefined) => {
+        if (!b) return { year: '', month: '', day: '' };
+        const [y, m, d] = b.split('-');
+        const monthNormalized = m ? String(Number(m)) : '';
+        const dayNormalized = d ?? '';
+        return { year: y ?? '', month: monthNormalized, day: dayNormalized };
+    };
+
+    const initial = React.useMemo(() => parseBirthday(data.birthday), [data.birthday]);
+    const [birthMonth, setBirthMonth] = React.useState<string>(initial.month);
+    const [birthDay, setBirthDay] = React.useState<string>(initial.day);
+    const [birthYear, setBirthYear] = React.useState<string>(initial.year);
+
+    const pad2 = (n: string | number) => String(n).padStart(2, '0');
+    const DEFAULT_YEAR = '2000';
+    const daysInMonth = (year: number, month1to12: number) => new Date(year, month1to12, 0).getDate();
+
+    React.useEffect(() => {
+        // Clamp day within valid range when month/year change
+        const y = Number(birthYear || DEFAULT_YEAR);
+        const m = Number(birthMonth || 1);
+        const maxDay = daysInMonth(y, m);
+        const dNum = Number(birthDay || 0);
+        if (dNum > maxDay) {
+            setBirthDay(String(maxDay));
+        }
+        // Compose and sync to form data when month and day present
+        if (birthMonth && birthDay) {
+            const yearForStorage = birthYear || DEFAULT_YEAR;
+            const composed = `${yearForStorage}-${pad2(birthMonth)}-${pad2(birthDay)}`;
+            setData('birthday', composed);
+        } else {
+            setData('birthday', '');
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [birthMonth, birthDay, birthYear]);
+
     function submit(e: React.FormEvent) {
         e.preventDefault();
-        // For file uploads, inertia will set FormData automatically when a File is present
         put(route('contacts.update', contact.id));
     }
 
@@ -150,36 +197,48 @@ export default function Edit({
                     )}
                 </div>
 
-                {/* Birthday – dropdown caption date picker */}
+                {/* Birthday – Month / Day / Year (optional) */}
                 <div className="gap-1.5">
-                    <Label htmlFor="birthday">Birthday</Label>
-                    <Popover>
-                        <PopoverTrigger asChild>
-                            <Button
-                                id="birthday"
-                                variant="outline"
-                                className={cn(
-                                    'w-60 justify-between font-normal',
-                                    !data.birthday && 'text-muted-foreground',
-                                    errors.birthday && 'border-red-500'
-                                )}
-                            >
-                                {data.birthday ? new Date(data.birthday).toLocaleDateString() : 'Select date'}
-                                <ChevronDownIcon className="h-4 w-4" />
-                            </Button>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-auto overflow-hidden p-0" align="start">
-                            <Calendar
-                                mode="single"
-                                captionLayout="dropdown"
-                                selected={data.birthday ? new Date(data.birthday) : undefined}
-                                onSelect={(date: Date | undefined) =>
-                                    setData('birthday', date ? format(date, 'yyyy-MM-dd') : '')
-                                }
-                                initialFocus
-                            />
-                        </PopoverContent>
-                    </Popover>
+                    <Label htmlFor="birthday-month">Birthday</Label>
+                    <div className={cn('flex items-center gap-2', errors.birthday && 'aria-[invalid=true]:border-red-500')} aria-invalid={!!errors.birthday}>
+                        <div className="flex items-center">
+                            <CalendarIcon className="mr-2 h-4 w-4 text-muted-foreground" />
+                        </div>
+                        <Select value={birthMonth} onValueChange={(value) => setBirthMonth(value)}>
+                            <SelectTrigger id="birthday-month" className="w-40">
+                                <SelectValue placeholder="Month" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                {months.map((m) => (
+                                    <SelectItem key={m.value} value={m.value}>{m.label}</SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
+                        <Input
+                            id="birthday-day"
+                            inputMode="numeric"
+                            pattern="^[0-9]*$"
+                            placeholder="Day"
+                            className="w-24"
+                            value={birthDay}
+                            onChange={(e) => {
+                                const v = e.target.value.replace(/[^0-9]/g, '');
+                                setBirthDay(v);
+                            }}
+                        />
+                        <Input
+                            id="birthday-year"
+                            inputMode="numeric"
+                            pattern="^[0-9]*$"
+                            placeholder="Year (optional)"
+                            className="w-36"
+                            value={birthYear}
+                            onChange={(e) => {
+                                const v = e.target.value.replace(/[^0-9]/g, '');
+                                setBirthYear(v);
+                            }}
+                        />
+                    </div>
                     {errors.birthday && (
                         <span className="text-sm text-red-600">{errors.birthday}</span>
                     )}
