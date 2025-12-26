@@ -47,7 +47,7 @@ export default function DeleteUser() {
                             Are you sure you want to delete your account?
                         </DialogTitle>
                         <DialogDescription>
-                            Once your account is deleted, all of its resources
+                            Once your account is deleted, all of your contacts
                             and data will also be permanently deleted. Please
                             enter your password to confirm you would like to
                             permanently delete your account.
