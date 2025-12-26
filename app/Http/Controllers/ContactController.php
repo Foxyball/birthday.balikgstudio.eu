@@ -17,7 +17,9 @@ class ContactController extends Controller
      */
     public function index()
     {
-        $contacts = Contact::where('user_id', Auth::id())->paginate(20);
+        $contacts = Contact::with('category')
+            ->where('user_id', Auth::id())
+            ->paginate(20);
 
         return Inertia::render('contacts/index', [
             'contacts' => $contacts,

@@ -16,9 +16,16 @@ import { BreadcrumbItem, PaginatedResponse, type SharedData } from '@/types';
 import { Head, router, usePage } from '@inertiajs/react';
 import React from 'react';
 import { useClipboard } from '@/hooks/use-clipboard';
-import { Copy, Check } from 'lucide-react';
+import { Copy, Check, Plus, Download, Printer, X } from 'lucide-react';
 import { toast } from 'sonner';
 import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip';
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogHeader,
+    DialogTitle,
+} from '@/components/ui/dialog';
 
 interface Contact {
     id: number;
@@ -78,6 +85,60 @@ export default function ContactsIndex() {
         });
     };
 
+    const [isExportOpen, setIsExportOpen] = React.useState(false);
+    const handlePrint = React.useCallback(() => {
+        window.print();
+    }, []);
+
+    const toCSV = React.useCallback((rows: Contact[]) => {
+        const headers = [
+            'name',
+            'email',
+            'phone',
+            'birthday',
+            'category',
+        ];
+        const escape = (val: unknown) => {
+            const s = val == null ? '' : String(val);
+            return '"' + s.replace(/"/g, '""') + '"';
+        };
+        const lines = rows.map((r) => {
+            const categoryName = (r as unknown as { category?: { name?: string }; category_name?: string }).category?.name
+                ?? (r as unknown as { category_name?: string }).category_name
+                ?? '';
+            return [
+                r.name,
+                r.email,
+                r.phone ?? '',
+                r.birthday ?? '',
+                categoryName,
+            ]
+                .map(escape)
+                .join(',');
+        });
+        return [headers.join(','), ...lines].join('\n');
+    }, []);
+
+    const handleConfirmExport = React.useCallback(() => {
+        try {
+            const csv = toCSV(localContacts);
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'contacts.csv';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            toast.success('CSV export started');
+        } catch {
+            toast.error('Failed to export CSV');
+        } finally {
+            setIsExportOpen(false);
+        }
+    }, [localContacts, toCSV]);
+
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Contacts" />
@@ -85,12 +146,20 @@ export default function ContactsIndex() {
             <div className="flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4">
                 <div className="flex items-center justify-between">
                     <h1 className="text-xl font-semibold">Contacts</h1>
-
-                    <Button
-                        onClick={() => router.get(contactsRoutes.create().url)}
-                    >
-                        + New Contact
-                    </Button>
+                    <div className="flex items-center gap-2">
+                        <Button onClick={() => router.get(contactsRoutes.create().url)}>
+                            <Plus className="size-4" />
+                            New Contact
+                        </Button>
+                        <Button variant="outline" onClick={() => setIsExportOpen(true)}>
+                            <Download className="size-4" />
+                            Export
+                        </Button>
+                        <Button variant="outline" onClick={handlePrint}>
+                            <Printer className="size-4" />
+                            Print
+                        </Button>
+                    </div>
                 </div>
 
                 <Table>
@@ -187,6 +256,26 @@ export default function ContactsIndex() {
                     </div>
                 </div>
             </div>
+            <Dialog open={isExportOpen} onOpenChange={setIsExportOpen}>
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle>Export Contacts</DialogTitle>
+                        <DialogDescription>
+                            All contacts will be exported to CSV. Do you want to proceed?
+                        </DialogDescription>
+                    </DialogHeader>
+                    <div className="flex justify-end gap-2">
+                        <Button variant="outline" onClick={() => setIsExportOpen(false)}>
+                            <X className="size-4" />
+                            Cancel
+                        </Button>
+                        <Button onClick={handleConfirmExport}>
+                            <Download className="size-4" />
+                            Export
+                        </Button>
+                    </div>
+                </DialogContent>
+            </Dialog>
         </AppLayout>
     );
 }
