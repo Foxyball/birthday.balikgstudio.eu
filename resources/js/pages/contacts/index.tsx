@@ -39,15 +39,12 @@ const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Contacts', href: '/contacts' },
 ];
 
-const formatDate = (date?: string | null) =>
+const formatBirthday = (date?: string | null) =>
     date
-        ? new Date(date)
-              .toLocaleDateString('en-GB', {
-                  day: '2-digit',
-                  month: '2-digit',
-                  year: 'numeric',
-              })
-              .replace(/\//g, '.')
+        ? new Date(date).toLocaleDateString('en-GB', {
+              day: 'numeric',
+              month: 'long',
+          })
         : 'N/A';
 
 export default function ContactsIndex() {
@@ -106,8 +103,6 @@ export default function ContactsIndex() {
                             <TableHead>Email</TableHead>
                             <TableHead>Phone</TableHead>
                             <TableHead>Birthday</TableHead>
-                            <TableHead>Created At</TableHead>
-                            <TableHead>Updated At</TableHead>
                             <TableHead className="text-right">Action</TableHead>
                         </TableRow>
                     </TableHeader>
@@ -161,13 +156,7 @@ export default function ContactsIndex() {
                                         )}
                                     </TableCell>
                                     <TableCell>
-                                        {formatDate(contact.birthday)}
-                                    </TableCell>
-                                    <TableCell>
-                                        {formatDate(contact.created_at)}
-                                    </TableCell>
-                                    <TableCell>
-                                        {formatDate(contact.updated_at)}
+                                        {formatBirthday(contact.birthday)}
                                     </TableCell>
                                     <TableCell className="text-right">
                                         <ContactActions
