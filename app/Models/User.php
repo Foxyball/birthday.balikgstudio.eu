@@ -25,6 +25,8 @@ class User extends Authenticatable
         'password',
         'role',
         'is_locked',
+        'share_token',
+        'share_enabled',
     ];
 
     /**
