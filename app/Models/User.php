@@ -4,6 +4,7 @@ namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Fortify\TwoFactorAuthenticatable;
@@ -52,5 +53,28 @@ class User extends Authenticatable
             'is_locked' => 'boolean',
             'role' => 'integer',
         ];
+    }
+
+    /**
+     * Boot method to handle model events.
+     */
+    protected static function boot()
+    {
+        parent::boot();
+
+        // Delete all contacts when user is deleted (triggers contact's deleting event for image cleanup)
+        static::deleting(function (User $user) {
+            $user->contacts()->each(function (Contact $contact) {
+                $contact->delete();
+            });
+        });
+    }
+
+    /**
+     * Get the contacts for this user.
+     */
+    public function contacts(): HasMany
+    {
+        return $this->hasMany(Contact::class);
     }
 }

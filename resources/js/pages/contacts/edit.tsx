@@ -1,6 +1,7 @@
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Progress } from '@/components/ui/progress';
 import AppLayout from '@/layouts/app-layout';
 import { Head, router, useForm } from '@inertiajs/react';
 import {
@@ -10,7 +11,7 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select';
-import { CalendarIcon } from 'lucide-react';
+import { CalendarIcon, UploadIcon } from 'lucide-react';
 import { route } from 'ziggy-js';
 import { cn } from '@/lib/utils';
 import React from 'react';
@@ -27,6 +28,7 @@ type Contact = {
     phone?: string | null;
     birthday: string;
     image?: string | null;
+    image_url?: string | null;
     category_id: number;
 };
 
@@ -37,7 +39,7 @@ export default function Edit({
     contact: Contact;
     categories: Category[];
 }) {
-    const { data, setData, put, processing, errors } = useForm<{
+    const { data, setData, put, processing, errors, setError, clearErrors } = useForm<{
         name: string;
         email: string;
         phone: string;
@@ -52,6 +54,8 @@ export default function Edit({
         image: null,
         category_id: contact.category_id,
     });
+
+    const [uploadProgress, setUploadProgress] = React.useState<number | null>(null);
 
     const months = React.useMemo(
         () => [
@@ -110,7 +114,34 @@ export default function Edit({
 
     function submit(e: React.FormEvent) {
         e.preventDefault();
-        put(route('contacts.update', contact.id));
+        
+        const formData = new FormData();
+        formData.append('_method', 'PUT');
+        formData.append('name', data.name);
+        formData.append('category_id', String(data.category_id));
+        formData.append('email', data.email);
+        formData.append('phone', data.phone);
+        formData.append('birthday', data.birthday);
+        if (data.image) {
+            formData.append('image', data.image);
+        }
+
+        router.post(route('contacts.update', contact.id), formData, {
+            forceFormData: true,
+            onProgress: (progress) => {
+                if (progress.percentage) {
+                    setUploadProgress(progress.percentage);
+                }
+            },
+            onFinish: () => {
+                setUploadProgress(null);
+            },
+            onError: (errors) => {
+                Object.entries(errors).forEach(([key, value]) => {
+                    setError(key as keyof typeof data, value as string);
+                });
+            },
+        });
     }
 
     return (
@@ -247,10 +278,10 @@ export default function Edit({
                 {/* Image */}
                 <div className="gap-1.5">
                     <Label htmlFor="image">Image</Label>
-                    {contact.image && (
+                    {contact.image_url && (
                         <div className="mb-2 flex items-center gap-3">
                             <img
-                                src={contact.image}
+                                src={contact.image_url}
                                 alt={`${contact.name} current image`}
                                 className="h-16 w-16 rounded object-cover border"
                             />
@@ -273,9 +304,20 @@ export default function Edit({
                     )}
                 </div>
 
+                {/* Upload Progress */}
+                {uploadProgress !== null && (
+                    <div className="space-y-2">
+                        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                            <UploadIcon className="h-4 w-4 animate-pulse" />
+                            <span>Uploading... {Math.round(uploadProgress)}%</span>
+                        </div>
+                        <Progress value={uploadProgress} className="h-2" />
+                    </div>
+                )}
+
                 <div className="flex gap-2 pt-2">
-                    <Button type="submit" disabled={processing}>
-                        Update Contact
+                    <Button type="submit" disabled={processing || uploadProgress !== null}>
+                        {uploadProgress !== null ? 'Uploading...' : 'Update Contact'}
                     </Button>
                     <Button type="button" variant="outline" onClick={() => router.visit(route('contacts.index'))}>
                         Cancel

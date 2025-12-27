@@ -46,6 +46,7 @@ interface Contact {
     category_id?: number;
     status: boolean;
     image?: string | null;
+    image_url?: string | null;
     created_at: string;
     updated_at?: string | null;
 }
@@ -393,8 +394,8 @@ export default function ContactsIndex() {
                                     <TableCell>
                                         <div className="flex items-center gap-3">
                                             <Avatar className="size-9">
-                                                {contact.image ? (
-                                                    <AvatarImage src={contact.image} alt={contact.name} />
+                                                {contact.image_url ? (
+                                                    <AvatarImage src={contact.image_url} alt={contact.name} />
                                                 ) : (
                                                     <AvatarFallback className="bg-muted text-foreground">
                                                         {contact.name?.trim()?.charAt(0)?.toUpperCase() ?? '?'}
