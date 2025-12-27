@@ -15,14 +15,41 @@ class ContactController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
+        $search = $request->input('search', '');
+        $sortField = $request->input('sort', 'created_at');
+        $sortDirection = $request->input('direction', 'desc');
+
+        // Validate sort field
+        $allowedSortFields = ['id', 'name', 'email', 'birthday', 'created_at'];
+        if (!in_array($sortField, $allowedSortFields)) {
+            $sortField = 'created_at';
+        }
+
+        // Validate sort direction
+        $sortDirection = strtolower($sortDirection) === 'asc' ? 'asc' : 'desc';
+
         $contacts = Contact::with('category')
             ->where('user_id', Auth::id())
-            ->paginate(20);
+            ->when($search, function ($query, $search) {
+                $query->where(function ($q) use ($search) {
+                    $q->where('name', 'like', "%{$search}%")
+                      ->orWhere('email', 'like', "%{$search}%")
+                      ->orWhere('phone', 'like', "%{$search}%");
+                });
+            })
+            ->orderBy($sortField, $sortDirection)
+            ->paginate(20)
+            ->withQueryString();
 
         return Inertia::render('contacts/index', [
             'contacts' => $contacts,
+            'filters' => [
+                'search' => $search,
+                'sort' => $sortField,
+                'direction' => $sortDirection,
+            ],
         ]);
     }
 

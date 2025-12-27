@@ -12,12 +12,36 @@ class CategoryController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        $categories = Category::latest()->paginate(20);
+        $search = $request->input('search', '');
+        $sortField = $request->input('sort', 'created_at');
+        $sortDirection = $request->input('direction', 'desc');
+
+        // Validate sort field
+        $allowedSortFields = ['id', 'name', 'created_at', 'updated_at'];
+        if (!in_array($sortField, $allowedSortFields)) {
+            $sortField = 'created_at';
+        }
+
+        // Validate sort direction
+        $sortDirection = strtolower($sortDirection) === 'asc' ? 'asc' : 'desc';
+
+        $categories = Category::query()
+            ->when($search, function ($query, $search) {
+                $query->where('name', 'like', "%{$search}%");
+            })
+            ->orderBy($sortField, $sortDirection)
+            ->paginate(20)
+            ->withQueryString();
 
         return Inertia::render('categories/index', [
             'categories' => $categories,
+            'filters' => [
+                'search' => $search,
+                'sort' => $sortField,
+                'direction' => $sortDirection,
+            ],
         ]);
     }
 
