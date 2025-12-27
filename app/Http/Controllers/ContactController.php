@@ -124,4 +124,22 @@ class ContactController extends Controller
         $success = 'Contact deleted successfully.';
         return redirect()->route('contacts.index')->with('success', $success);
     }
+
+    /**
+     * Toggle the status of a contact.
+     */
+    public function toggleStatus(Request $request, string $id)
+    {
+        $contact = Contact::findOrFail($id);
+        
+        $contact->update([
+            'status' => !$contact->status,
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'status' => $contact->status,
+            'message' => $contact->status ? 'Contact activated.' : 'Contact deactivated.',
+        ]);
+    }
 }

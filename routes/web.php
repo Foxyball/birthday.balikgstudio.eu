@@ -18,10 +18,12 @@ Route::middleware(['auth', 'verified'])->group(function () {
 Route::middleware(['auth', 'verified', 'admin'])->group(function () {
     Route::resource('categories', CategoryController::class);
     Route::resource('users', UserController::class)->except(['destroy', 'show']);
+    Route::patch('users/{user}/toggle-lock', [UserController::class, 'toggleLock'])->name('users.toggle-lock');
 });
 
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::resource('contacts', ContactController::class);
+    Route::patch('contacts/{contact}/toggle-status', [ContactController::class, 'toggleStatus'])->name('contacts.toggle-status');
 });
 
 require __DIR__ . '/settings.php';

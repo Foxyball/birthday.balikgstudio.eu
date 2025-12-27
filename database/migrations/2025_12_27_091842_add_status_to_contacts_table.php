@@ -11,8 +11,8 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('users', function (Blueprint $table) {
-            $table->boolean('is_locked')->default(0)->after('password');
+        Schema::table('contacts', function (Blueprint $table) {
+            $table->boolean('status')->default(1)->after('category_id');
         });
     }
 
@@ -21,8 +21,8 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('users', function (Blueprint $table) {
-            $table->dropColumn('is_locked');
+        Schema::table('contacts', function (Blueprint $table) {
+            $table->dropColumn('status');
         });
     }
 };

@@ -31,6 +31,8 @@ interface Contact {
     phone?: string | null;
     birthday?: string;
     category_id?: number;
+    status: boolean;
+    image?: string | null;
     created_at: string;
     updated_at?: string | null;
 }

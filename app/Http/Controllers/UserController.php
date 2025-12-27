@@ -122,4 +122,22 @@ class UserController extends Controller
         $success = 'User updated successfully.';
         return redirect()->route('users.index')->with('success', $success);
     }
+
+    /**
+     * Toggle the is_locked status of a user.
+     */
+    public function toggleLock(Request $request, string $id)
+    {
+        $user = User::findOrFail($id);
+        
+        $user->update([
+            'is_locked' => !$user->is_locked,
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'is_locked' => $user->is_locked,
+            'message' => $user->is_locked ? 'User has been locked.' : 'User has been unlocked.',
+        ]);
+    }
 }

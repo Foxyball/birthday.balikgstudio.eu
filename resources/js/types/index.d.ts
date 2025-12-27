@@ -37,6 +37,7 @@ export interface User {
     avatar?: string;
     email_verified_at: string | null;
     role: 0 | 1;
+    is_locked: boolean;
     two_factor_enabled?: boolean;
     created_at: string;
     updated_at: string;

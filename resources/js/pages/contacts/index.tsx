@@ -1,6 +1,7 @@
 import ContactActions from '@/components/contacts/ContactActions';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
+import { Switch } from '@/components/ui/switch';
 import {
     Table,
     TableBody,
@@ -26,6 +27,7 @@ import {
     DialogHeader,
     DialogTitle,
 } from '@/components/ui/dialog';
+import { route } from 'ziggy-js';
 
 interface Contact {
     id: number;
@@ -34,6 +36,7 @@ interface Contact {
     phone?: string | null;
     birthday?: string;
     category_id?: number;
+    status: boolean;
     image?: string | null;
     created_at: string;
     updated_at?: string | null;
@@ -61,6 +64,60 @@ export default function ContactsIndex() {
     const [localContacts, setLocalContacts] = React.useState(
         contacts.data ?? ([] as Contact[]),
     );
+    const [togglingIds, setTogglingIds] = React.useState<Set<number>>(new Set());
+
+    React.useEffect(() => {
+        setLocalContacts(contacts.data ?? []);
+    }, [contacts.data]);
+
+    const handleToggleStatus = async (contact: Contact) => {
+        setTogglingIds((prev) => new Set(prev).add(contact.id));
+        
+        // Optimistic update
+        setLocalContacts((prev) =>
+            prev.map((c) =>
+                c.id === contact.id ? { ...c, status: !c.status } : c
+            )
+        );
+
+        try {
+            const response = await fetch(route('contacts.toggle-status', contact.id), {
+                method: 'PATCH',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector<HTMLMetaElement>('meta[name="csrf-token"]')?.content || '',
+                },
+            });
+
+            const data = await response.json();
+            
+            if (data.success) {
+                toast.success(data.message);
+            } else {
+                // Revert on failure
+                setLocalContacts((prev) =>
+                    prev.map((c) =>
+                        c.id === contact.id ? { ...c, status: contact.status } : c
+                    )
+                );
+                toast.error('Failed to update contact status');
+            }
+        } catch {
+            // Revert on error
+            setLocalContacts((prev) =>
+                prev.map((c) =>
+                    c.id === contact.id ? { ...c, status: contact.status } : c
+                )
+            );
+            toast.error('Failed to update contact status');
+        } finally {
+            setTogglingIds((prev) => {
+                const next = new Set(prev);
+                next.delete(contact.id);
+                return next;
+            });
+        }
+    };
 
     const [, copy] = useClipboard();
     const [justCopiedPhone, setJustCopiedPhone] = React.useState<string | null>(null);
@@ -170,6 +227,7 @@ export default function ContactsIndex() {
                             <TableHead>Email</TableHead>
                             <TableHead>Phone</TableHead>
                             <TableHead>Birthday</TableHead>
+                            <TableHead>Active</TableHead>
                             <TableHead className="text-right">Action</TableHead>
                         </TableRow>
                     </TableHeader>
@@ -221,6 +279,14 @@ export default function ContactsIndex() {
                                         )}
                                     </TableCell>
                                     <TableCell>{formatBirthday(contact.birthday)}</TableCell>
+                                    <TableCell>
+                                        <Switch
+                                            checked={contact.status}
+                                            onCheckedChange={() => handleToggleStatus(contact)}
+                                            disabled={togglingIds.has(contact.id)}
+                                            aria-label={contact.status ? 'Deactivate contact' : 'Activate contact'}
+                                        />
+                                    </TableCell>
                                     <TableCell className="text-right">
                                         <ContactActions contact={contact} onDelete={handleDelete} />
                                     </TableCell>
@@ -228,7 +294,7 @@ export default function ContactsIndex() {
                             ))
                         ) : (
                             <TableRow>
-                                <TableCell colSpan={7} className="text-center">
+                                <TableCell colSpan={6} className="text-center">
                                     No contacts found.
                                 </TableCell>
                             </TableRow>

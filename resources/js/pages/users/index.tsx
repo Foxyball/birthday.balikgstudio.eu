@@ -8,6 +8,7 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select';
+import { Switch } from '@/components/ui/switch';
 import {
     Table,
     TableBody,
@@ -23,6 +24,7 @@ import { Head, router } from '@inertiajs/react';
 import { ArrowDownIcon, ArrowUpIcon, SearchIcon } from 'lucide-react';
 import React from 'react';
 import { route } from 'ziggy-js';
+import { toast } from 'sonner';
 
 interface Filters {
     search: string;
@@ -75,6 +77,61 @@ export default function UsersIndex({ users, filters }: Props) {
     const [sortDirection, setSortDirection] = React.useState<'asc' | 'desc'>(
         filters.direction || 'desc'
     );
+    const [localUsers, setLocalUsers] = React.useState(users.data);
+    const [togglingIds, setTogglingIds] = React.useState<Set<number>>(new Set());
+
+    React.useEffect(() => {
+        setLocalUsers(users.data);
+    }, [users.data]);
+
+    const handleToggleLock = async (user: User) => {
+        setTogglingIds((prev) => new Set(prev).add(user.id));
+        
+        // Optimistic update
+        setLocalUsers((prev) =>
+            prev.map((u) =>
+                u.id === user.id ? { ...u, is_locked: !u.is_locked } : u
+            )
+        );
+
+        try {
+            const response = await fetch(route('users.toggle-lock', user.id), {
+                method: 'PATCH',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector<HTMLMetaElement>('meta[name="csrf-token"]')?.content || '',
+                },
+            });
+
+            const data = await response.json();
+            
+            if (data.success) {
+                toast.success(data.message);
+            } else {
+                // Revert on failure
+                setLocalUsers((prev) =>
+                    prev.map((u) =>
+                        u.id === user.id ? { ...u, is_locked: user.is_locked } : u
+                    )
+                );
+                toast.error('Failed to update user status');
+            }
+        } catch {
+            // Revert on error
+            setLocalUsers((prev) =>
+                prev.map((u) =>
+                    u.id === user.id ? { ...u, is_locked: user.is_locked } : u
+                )
+            );
+            toast.error('Failed to update user status');
+        } finally {
+            setTogglingIds((prev) => {
+                const next = new Set(prev);
+                next.delete(user.id);
+                return next;
+            });
+        }
+    };
 
     const handleSearch = (e: React.FormEvent) => {
         e.preventDefault();
@@ -209,6 +266,7 @@ export default function UsersIndex({ users, filters }: Props) {
                                 Email <SortIcon field="email" sortField={sortField} sortDirection={sortDirection} />
                             </TableHead>
                             <TableHead>Role</TableHead>
+                            <TableHead>Locked</TableHead>
                             <TableHead
                                 className="cursor-pointer"
                                 onClick={() => handleSort('created_at')}
@@ -220,8 +278,8 @@ export default function UsersIndex({ users, filters }: Props) {
                     </TableHeader>
 
                     <TableBody>
-                        {users.data.length > 0 ? (
-                            users.data.map((user) => (
+                        {localUsers.length > 0 ? (
+                            localUsers.map((user) => (
                                 <TableRow key={user.id}>
                                     <TableCell>
                                         <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary text-primary-foreground font-semibold">
@@ -244,6 +302,14 @@ export default function UsersIndex({ users, filters }: Props) {
                                         </span>
                                     </TableCell>
                                     <TableCell>
+                                        <Switch
+                                            checked={user.is_locked}
+                                            onCheckedChange={() => handleToggleLock(user)}
+                                            disabled={togglingIds.has(user.id)}
+                                            aria-label={user.is_locked ? 'Unlock user' : 'Lock user'}
+                                        />
+                                    </TableCell>
+                                    <TableCell>
                                         {formatDate(user.created_at)}
                                     </TableCell>
                                     <TableCell className="text-right">
@@ -253,7 +319,7 @@ export default function UsersIndex({ users, filters }: Props) {
                             ))
                         ) : (
                             <TableRow>
-                                <TableCell colSpan={6} className="text-center">
+                                <TableCell colSpan={7} className="text-center">
                                     No users found.
                                 </TableCell>
                             </TableRow>
