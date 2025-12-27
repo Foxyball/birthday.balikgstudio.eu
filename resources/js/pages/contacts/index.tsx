@@ -1,6 +1,15 @@
 import ContactActions from '@/components/contacts/ContactActions';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
+import { Input } from '@/components/ui/input';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/components/ui/select';
+import { Switch } from '@/components/ui/switch';
 import {
     Table,
     TableBody,
@@ -16,7 +25,7 @@ import { BreadcrumbItem, PaginatedResponse, type SharedData } from '@/types';
 import { Head, router, usePage } from '@inertiajs/react';
 import React from 'react';
 import { useClipboard } from '@/hooks/use-clipboard';
-import { Copy, Check, Plus, Download, Printer, X } from 'lucide-react';
+import { Copy, Check, Plus, Download, Printer, X, SearchIcon, ArrowUpIcon, ArrowDownIcon } from 'lucide-react';
 import { toast } from 'sonner';
 import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip';
 import {
@@ -26,6 +35,7 @@ import {
     DialogHeader,
     DialogTitle,
 } from '@/components/ui/dialog';
+import { route } from 'ziggy-js';
 
 interface Contact {
     id: number;
@@ -34,13 +44,21 @@ interface Contact {
     phone?: string | null;
     birthday?: string;
     category_id?: number;
+    status: boolean;
     image?: string | null;
     created_at: string;
     updated_at?: string | null;
 }
 
+interface Filters {
+    search: string;
+    sort: string;
+    direction: 'asc' | 'desc';
+}
+
 interface Props extends SharedData {
     contacts: PaginatedResponse<Contact>;
+    filters: Filters;
 }
 
 const breadcrumbs: BreadcrumbItem[] = [
@@ -55,12 +73,119 @@ const formatBirthday = (date?: string | null) =>
           })
         : 'N/A';
 
+const SortIcon = ({
+    field,
+    sortField,
+    sortDirection,
+}: {
+    field: string;
+    sortField: string;
+    sortDirection: 'asc' | 'desc';
+}) => {
+    if (sortField !== field) return null;
+    return sortDirection === 'asc' ? (
+        <ArrowUpIcon className="ml-1 inline h-4 w-4" />
+    ) : (
+        <ArrowDownIcon className="ml-1 inline h-4 w-4" />
+    );
+};
+
 export default function ContactsIndex() {
-    const { contacts } = usePage<Props>().props;
+    const { contacts, filters } = usePage<Props>().props;
+
+    const [search, setSearch] = React.useState(filters.search || '');
+    const [sortField, setSortField] = React.useState(filters.sort || 'created_at');
+    const [sortDirection, setSortDirection] = React.useState<'asc' | 'desc'>(
+        filters.direction || 'desc'
+    );
 
     const [localContacts, setLocalContacts] = React.useState(
         contacts.data ?? ([] as Contact[]),
     );
+    const [togglingIds, setTogglingIds] = React.useState<Set<number>>(new Set());
+
+    React.useEffect(() => {
+        setLocalContacts(contacts.data ?? []);
+    }, [contacts.data]);
+
+    const handleSearch = (e: React.FormEvent) => {
+        e.preventDefault();
+        router.get(
+            route('contacts.index'),
+            { search, sort: sortField, direction: sortDirection },
+            { preserveState: true }
+        );
+    };
+
+    const handleSort = (field: string) => {
+        const newDirection =
+            sortField === field && sortDirection === 'asc' ? 'desc' : 'asc';
+        setSortField(field);
+        setSortDirection(newDirection);
+        router.get(
+            route('contacts.index'),
+            { search, sort: field, direction: newDirection },
+            { preserveState: true }
+        );
+    };
+
+    const handleDirectionChange = (direction: 'asc' | 'desc') => {
+        setSortDirection(direction);
+        router.get(
+            route('contacts.index'),
+            { search, sort: sortField, direction },
+            { preserveState: true }
+        );
+    };
+
+    const handleToggleStatus = async (contact: Contact) => {
+        setTogglingIds((prev) => new Set(prev).add(contact.id));
+        
+        // Optimistic update
+        setLocalContacts((prev) =>
+            prev.map((c) =>
+                c.id === contact.id ? { ...c, status: !c.status } : c
+            )
+        );
+
+        try {
+            const response = await fetch(route('contacts.toggle-status', contact.id), {
+                method: 'PATCH',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector<HTMLMetaElement>('meta[name="csrf-token"]')?.content || '',
+                },
+            });
+
+            const data = await response.json();
+            
+            if (data.success) {
+                toast.success(data.message);
+            } else {
+                // Revert on failure
+                setLocalContacts((prev) =>
+                    prev.map((c) =>
+                        c.id === contact.id ? { ...c, status: contact.status } : c
+                    )
+                );
+                toast.error('Failed to update contact status');
+            }
+        } catch {
+            // Revert on error
+            setLocalContacts((prev) =>
+                prev.map((c) =>
+                    c.id === contact.id ? { ...c, status: contact.status } : c
+                )
+            );
+            toast.error('Failed to update contact status');
+        } finally {
+            setTogglingIds((prev) => {
+                const next = new Set(prev);
+                next.delete(contact.id);
+                return next;
+            });
+        }
+    };
 
     const [, copy] = useClipboard();
     const [justCopiedPhone, setJustCopiedPhone] = React.useState<string | null>(null);
@@ -162,14 +287,102 @@ export default function ContactsIndex() {
                     </div>
                 </div>
 
+                {/* Search and Sort Controls */}
+                <div className="flex flex-wrap items-center gap-4">
+                    <form
+                        onSubmit={handleSearch}
+                        className="flex items-center gap-2"
+                    >
+                        <div className="relative">
+                            <SearchIcon className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                            <Input
+                                type="text"
+                                placeholder="Search by name, email, phone..."
+                                value={search}
+                                onChange={(e) => setSearch(e.target.value)}
+                                className="w-72 pl-9"
+                            />
+                        </div>
+                        <Button type="submit" variant="secondary">
+                            Search
+                        </Button>
+                        {search && (
+                            <Button
+                                type="button"
+                                variant="ghost"
+                                onClick={() => {
+                                    setSearch('');
+                                    router.get(
+                                        route('contacts.index'),
+                                        { sort: sortField, direction: sortDirection },
+                                        { preserveState: true }
+                                    );
+                                }}
+                            >
+                                Clear
+                            </Button>
+                        )}
+                    </form>
+
+                    <div className="flex items-center gap-2">
+                        <span className="text-sm text-muted-foreground">
+                            Sort by:
+                        </span>
+                        <Select value={sortField} onValueChange={handleSort}>
+                            <SelectTrigger className="w-40">
+                                <SelectValue placeholder="Sort by" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="name">Name</SelectItem>
+                                <SelectItem value="email">Email</SelectItem>
+                                <SelectItem value="birthday">Birthday</SelectItem>
+                                <SelectItem value="created_at">
+                                    Created At
+                                </SelectItem>
+                            </SelectContent>
+                        </Select>
+
+                        <Select
+                            value={sortDirection}
+                            onValueChange={(value) =>
+                                handleDirectionChange(value as 'asc' | 'desc')
+                            }
+                        >
+                            <SelectTrigger className="w-32">
+                                <SelectValue placeholder="Direction" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="asc">Ascending</SelectItem>
+                                <SelectItem value="desc">Descending</SelectItem>
+                            </SelectContent>
+                        </Select>
+                    </div>
+                </div>
+
                 <Table>
                     <TableCaption>A list of contacts</TableCaption>
                     <TableHeader>
                         <TableRow>
-                            <TableHead>Name</TableHead>
-                            <TableHead>Email</TableHead>
+                            <TableHead
+                                className="cursor-pointer"
+                                onClick={() => handleSort('name')}
+                            >
+                                Name <SortIcon field="name" sortField={sortField} sortDirection={sortDirection} />
+                            </TableHead>
+                            <TableHead
+                                className="cursor-pointer"
+                                onClick={() => handleSort('email')}
+                            >
+                                Email <SortIcon field="email" sortField={sortField} sortDirection={sortDirection} />
+                            </TableHead>
                             <TableHead>Phone</TableHead>
-                            <TableHead>Birthday</TableHead>
+                            <TableHead
+                                className="cursor-pointer"
+                                onClick={() => handleSort('birthday')}
+                            >
+                                Birthday <SortIcon field="birthday" sortField={sortField} sortDirection={sortDirection} />
+                            </TableHead>
+                            <TableHead>Active</TableHead>
                             <TableHead className="text-right">Action</TableHead>
                         </TableRow>
                     </TableHeader>
@@ -221,6 +434,14 @@ export default function ContactsIndex() {
                                         )}
                                     </TableCell>
                                     <TableCell>{formatBirthday(contact.birthday)}</TableCell>
+                                    <TableCell>
+                                        <Switch
+                                            checked={contact.status}
+                                            onCheckedChange={() => handleToggleStatus(contact)}
+                                            disabled={togglingIds.has(contact.id)}
+                                            aria-label={contact.status ? 'Deactivate contact' : 'Activate contact'}
+                                        />
+                                    </TableCell>
                                     <TableCell className="text-right">
                                         <ContactActions contact={contact} onDelete={handleDelete} />
                                     </TableCell>
@@ -228,7 +449,7 @@ export default function ContactsIndex() {
                             ))
                         ) : (
                             <TableRow>
-                                <TableCell colSpan={7} className="text-center">
+                                <TableCell colSpan={6} className="text-center">
                                     No contacts found.
                                 </TableCell>
                             </TableRow>

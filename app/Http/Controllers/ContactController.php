@@ -15,14 +15,41 @@ class ContactController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
+        $search = $request->input('search', '');
+        $sortField = $request->input('sort', 'created_at');
+        $sortDirection = $request->input('direction', 'desc');
+
+        // Validate sort field
+        $allowedSortFields = ['id', 'name', 'email', 'birthday', 'created_at'];
+        if (!in_array($sortField, $allowedSortFields)) {
+            $sortField = 'created_at';
+        }
+
+        // Validate sort direction
+        $sortDirection = strtolower($sortDirection) === 'asc' ? 'asc' : 'desc';
+
         $contacts = Contact::with('category')
             ->where('user_id', Auth::id())
-            ->paginate(20);
+            ->when($search, function ($query, $search) {
+                $query->where(function ($q) use ($search) {
+                    $q->where('name', 'like', "%{$search}%")
+                      ->orWhere('email', 'like', "%{$search}%")
+                      ->orWhere('phone', 'like', "%{$search}%");
+                });
+            })
+            ->orderBy($sortField, $sortDirection)
+            ->paginate(20)
+            ->withQueryString();
 
         return Inertia::render('contacts/index', [
             'contacts' => $contacts,
+            'filters' => [
+                'search' => $search,
+                'sort' => $sortField,
+                'direction' => $sortDirection,
+            ],
         ]);
     }
 
@@ -123,5 +150,23 @@ class ContactController extends Controller
 
         $success = 'Contact deleted successfully.';
         return redirect()->route('contacts.index')->with('success', $success);
+    }
+
+    /**
+     * Toggle the status of a contact.
+     */
+    public function toggleStatus(Request $request, string $id)
+    {
+        $contact = Contact::findOrFail($id);
+        
+        $contact->update([
+            'status' => !$contact->status,
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'status' => $contact->status,
+            'message' => $contact->status ? 'Contact activated.' : 'Contact deactivated.',
+        ]);
     }
 }

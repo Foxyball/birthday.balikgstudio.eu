@@ -1,0 +1,220 @@
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/components/ui/select';
+import AppLayout from '@/layouts/app-layout';
+import { User } from '@/types';
+import { Head, router, useForm } from '@inertiajs/react';
+import { route } from 'ziggy-js';
+
+interface Props {
+    user: User;
+}
+
+export default function UsersEdit({ user }: Props) {
+    const { data, setData, put, processing, errors } = useForm({
+        name: user.name,
+        email: user.email,
+        password: '',
+        password_confirmation: '',
+        role: String(user.role),
+    });
+
+    const handleUpdate = (e: React.FormEvent) => {
+        e.preventDefault();
+        put(route('users.update', user.id));
+    };
+
+    return (
+        <AppLayout
+            breadcrumbs={[
+                { title: 'Users', href: '/users' },
+                { title: `Edit User`, href: `/users/${user.id}/edit` },
+            ]}
+        >
+            <Head title={`Edit User: ${user.name}`} />
+
+            <div className="max-w-md p-4">
+                <h1 className="mb-6 text-xl font-semibold">Edit User</h1>
+
+                <form onSubmit={handleUpdate} className="space-y-4">
+                    <div className="space-y-1.5">
+                        <Label htmlFor="name">Name</Label>
+                        <Input
+                            id="name"
+                            placeholder="Full name"
+                            value={data.name}
+                            onChange={(e) => setData('name', e.target.value)}
+                            required
+                            className={
+                                errors.name
+                                    ? 'border-red-500 focus:border-red-500 focus:ring-red-500'
+                                    : ''
+                            }
+                            aria-invalid={!!errors.name}
+                            aria-describedby={
+                                errors.name ? 'name-error' : undefined
+                            }
+                        />
+                        {errors.name && (
+                            <span
+                                id="name-error"
+                                className="text-sm text-red-600"
+                            >
+                                {errors.name}
+                            </span>
+                        )}
+                    </div>
+
+                    <div className="space-y-1.5">
+                        <Label htmlFor="email">Email</Label>
+                        <Input
+                            id="email"
+                            type="email"
+                            placeholder="Email address"
+                            value={data.email}
+                            onChange={(e) => setData('email', e.target.value)}
+                            required
+                            className={
+                                errors.email
+                                    ? 'border-red-500 focus:border-red-500 focus:ring-red-500'
+                                    : ''
+                            }
+                            aria-invalid={!!errors.email}
+                            aria-describedby={
+                                errors.email ? 'email-error' : undefined
+                            }
+                        />
+                        {errors.email && (
+                            <span
+                                id="email-error"
+                                className="text-sm text-red-600"
+                            >
+                                {errors.email}
+                            </span>
+                        )}
+                    </div>
+
+                    <div className="space-y-1.5">
+                        <Label htmlFor="password">
+                            Password{' '}
+                            <span className="text-muted-foreground">
+                                (leave blank to keep current)
+                            </span>
+                        </Label>
+                        <Input
+                            id="password"
+                            type="password"
+                            placeholder="New password"
+                            value={data.password}
+                            onChange={(e) =>
+                                setData('password', e.target.value)
+                            }
+                            className={
+                                errors.password
+                                    ? 'border-red-500 focus:border-red-500 focus:ring-red-500'
+                                    : ''
+                            }
+                            aria-invalid={!!errors.password}
+                            aria-describedby={
+                                errors.password ? 'password-error' : undefined
+                            }
+                        />
+                        {errors.password && (
+                            <span
+                                id="password-error"
+                                className="text-sm text-red-600"
+                            >
+                                {errors.password}
+                            </span>
+                        )}
+                    </div>
+
+                    <div className="space-y-1.5">
+                        <Label htmlFor="password_confirmation">
+                            Confirm Password
+                        </Label>
+                        <Input
+                            id="password_confirmation"
+                            type="password"
+                            placeholder="Confirm new password"
+                            value={data.password_confirmation}
+                            onChange={(e) =>
+                                setData('password_confirmation', e.target.value)
+                            }
+                            className={
+                                errors.password_confirmation
+                                    ? 'border-red-500 focus:border-red-500 focus:ring-red-500'
+                                    : ''
+                            }
+                            aria-invalid={!!errors.password_confirmation}
+                            aria-describedby={
+                                errors.password_confirmation
+                                    ? 'password_confirmation-error'
+                                    : undefined
+                            }
+                        />
+                        {errors.password_confirmation && (
+                            <span
+                                id="password_confirmation-error"
+                                className="text-sm text-red-600"
+                            >
+                                {errors.password_confirmation}
+                            </span>
+                        )}
+                    </div>
+
+                    <div className="space-y-1.5">
+                        <Label htmlFor="role">Role</Label>
+                        <Select
+                            value={data.role}
+                            onValueChange={(value) => setData('role', value)}
+                        >
+                            <SelectTrigger
+                                id="role"
+                                className={
+                                    errors.role
+                                        ? 'border-red-500 focus:border-red-500 focus:ring-red-500'
+                                        : ''
+                                }
+                            >
+                                <SelectValue placeholder="Select role" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="0">User</SelectItem>
+                                <SelectItem value="1">Admin</SelectItem>
+                            </SelectContent>
+                        </Select>
+                        {errors.role && (
+                            <span
+                                id="role-error"
+                                className="text-sm text-red-600"
+                            >
+                                {errors.role}
+                            </span>
+                        )}
+                    </div>
+
+                    <div className="flex gap-2 pt-4">
+                        <Button type="submit" disabled={processing}>
+                            Update User
+                        </Button>
+                        <Button
+                            type="button"
+                            variant="outline"
+                            onClick={() => router.visit(route('users.index'))}
+                        >
+                            Cancel
+                        </Button>
+                    </div>
+                </form>
+            </div>
+        </AppLayout>
+    );
+}

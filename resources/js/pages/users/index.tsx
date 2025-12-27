@@ -1,4 +1,4 @@
-import CategoryActions from '@/components/categories/CategoryActions';
+import UserActions from '@/components/users/UserActions';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
@@ -8,6 +8,7 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select';
+import { Switch } from '@/components/ui/switch';
 import {
     Table,
     TableBody,
@@ -18,19 +19,12 @@ import {
     TableRow,
 } from '@/components/ui/table';
 import AppLayout from '@/layouts/app-layout';
-import categoriesRoutes from '@/routes/categories';
-import { BreadcrumbItem, PaginatedResponse, type SharedData } from '@/types';
-import { Head, router, usePage } from '@inertiajs/react';
+import { BreadcrumbItem, PaginatedResponse, User } from '@/types';
+import { Head, router } from '@inertiajs/react';
 import { ArrowDownIcon, ArrowUpIcon, SearchIcon } from 'lucide-react';
 import React from 'react';
 import { route } from 'ziggy-js';
-
-interface Category {
-    id: number;
-    name: string;
-    created_at: string;
-    updated_at?: string | null;
-}
+import { toast } from 'sonner';
 
 interface Filters {
     search: string;
@@ -38,14 +32,12 @@ interface Filters {
     direction: 'asc' | 'desc';
 }
 
-interface Props extends SharedData {
-    categories: PaginatedResponse<Category>;
+interface Props {
+    users: PaginatedResponse<User>;
     filters: Filters;
 }
 
-const breadcrumbs: BreadcrumbItem[] = [
-    { title: 'Categories', href: '/categories' },
-];
+const breadcrumbs: BreadcrumbItem[] = [{ title: 'Users', href: '/users' }];
 
 const formatDate = (date?: string | null) =>
     date
@@ -57,6 +49,10 @@ const formatDate = (date?: string | null) =>
               })
               .replace(/\//g, '.')
         : 'N/A';
+
+const getInitials = (name: string) => {
+    return name.charAt(0).toUpperCase();
+};
 
 const SortIcon = ({
     field,
@@ -75,27 +71,72 @@ const SortIcon = ({
     );
 };
 
-export default function CategoriesIndex() {
-    const { categories, filters } = usePage<Props>().props;
-
+export default function UsersIndex({ users, filters }: Props) {
     const [search, setSearch] = React.useState(filters.search || '');
     const [sortField, setSortField] = React.useState(filters.sort || 'created_at');
     const [sortDirection, setSortDirection] = React.useState<'asc' | 'desc'>(
         filters.direction || 'desc'
     );
-
-    const [localCategories, setLocalCategories] = React.useState(
-        categories.data ?? ([] as Category[]),
-    );
+    const [localUsers, setLocalUsers] = React.useState(users.data);
+    const [togglingIds, setTogglingIds] = React.useState<Set<number>>(new Set());
 
     React.useEffect(() => {
-        setLocalCategories(categories.data ?? []);
-    }, [categories.data]);
+        setLocalUsers(users.data);
+    }, [users.data]);
+
+    const handleToggleLock = async (user: User) => {
+        setTogglingIds((prev) => new Set(prev).add(user.id));
+        
+        // Optimistic update
+        setLocalUsers((prev) =>
+            prev.map((u) =>
+                u.id === user.id ? { ...u, is_locked: !u.is_locked } : u
+            )
+        );
+
+        try {
+            const response = await fetch(route('users.toggle-lock', user.id), {
+                method: 'PATCH',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector<HTMLMetaElement>('meta[name="csrf-token"]')?.content || '',
+                },
+            });
+
+            const data = await response.json();
+            
+            if (data.success) {
+                toast.success(data.message);
+            } else {
+                // Revert on failure
+                setLocalUsers((prev) =>
+                    prev.map((u) =>
+                        u.id === user.id ? { ...u, is_locked: user.is_locked } : u
+                    )
+                );
+                toast.error('Failed to update user status');
+            }
+        } catch {
+            // Revert on error
+            setLocalUsers((prev) =>
+                prev.map((u) =>
+                    u.id === user.id ? { ...u, is_locked: user.is_locked } : u
+                )
+            );
+            toast.error('Failed to update user status');
+        } finally {
+            setTogglingIds((prev) => {
+                const next = new Set(prev);
+                next.delete(user.id);
+                return next;
+            });
+        }
+    };
 
     const handleSearch = (e: React.FormEvent) => {
         e.preventDefault();
         router.get(
-            route('categories.index'),
+            route('users.index'),
             { search, sort: sortField, direction: sortDirection },
             { preserveState: true }
         );
@@ -107,7 +148,7 @@ export default function CategoriesIndex() {
         setSortField(field);
         setSortDirection(newDirection);
         router.get(
-            route('categories.index'),
+            route('users.index'),
             { search, sort: field, direction: newDirection },
             { preserveState: true }
         );
@@ -116,39 +157,22 @@ export default function CategoriesIndex() {
     const handleDirectionChange = (direction: 'asc' | 'desc') => {
         setSortDirection(direction);
         router.get(
-            route('categories.index'),
+            route('users.index'),
             { search, sort: sortField, direction },
             { preserveState: true }
         );
     };
 
-    const handleDelete = (categoryToDelete: Category) => {
-        const previous = localCategories;
-        setLocalCategories((c) =>
-            c.filter((x) => x.id !== categoryToDelete.id),
-        );
-
-        router.delete(categoriesRoutes.destroy(categoryToDelete.id).url, {
-            onError: () => setLocalCategories(previous),
-            preserveScroll: true,
-            preserveState: false,
-        });
-    };
-
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title="Categories" />
+            <Head title="Users" />
 
             <div className="flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4">
                 <div className="flex items-center justify-between">
-                    <h1 className="text-xl font-semibold">Categories</h1>
+                    <h1 className="text-xl font-semibold">Users</h1>
 
-                    <Button
-                        onClick={() =>
-                            router.get(categoriesRoutes.create().url)
-                        }
-                    >
-                        + New Category
+                    <Button onClick={() => router.get(route('users.create'))}>
+                        + New User
                     </Button>
                 </div>
 
@@ -162,7 +186,7 @@ export default function CategoriesIndex() {
                             <SearchIcon className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                             <Input
                                 type="text"
-                                placeholder="Search by name..."
+                                placeholder="Search by name or email..."
                                 value={search}
                                 onChange={(e) => setSearch(e.target.value)}
                                 className="w-64 pl-9"
@@ -178,7 +202,7 @@ export default function CategoriesIndex() {
                                 onClick={() => {
                                     setSearch('');
                                     router.get(
-                                        route('categories.index'),
+                                        route('users.index'),
                                         { sort: sortField, direction: sortDirection },
                                         { preserveState: true }
                                     );
@@ -199,6 +223,7 @@ export default function CategoriesIndex() {
                             </SelectTrigger>
                             <SelectContent>
                                 <SelectItem value="name">Name</SelectItem>
+                                <SelectItem value="email">Email</SelectItem>
                                 <SelectItem value="created_at">
                                     Created At
                                 </SelectItem>
@@ -208,7 +233,7 @@ export default function CategoriesIndex() {
                         <Select
                             value={sortDirection}
                             onValueChange={(value) =>
-                                handleDirectionChange(value as 'asc' | 'desc')
+                                        handleDirectionChange(value as 'asc' | 'desc')
                             }
                         >
                             <SelectTrigger className="w-32">
@@ -223,54 +248,79 @@ export default function CategoriesIndex() {
                 </div>
 
                 <Table>
-                    <TableCaption>A list of categories</TableCaption>
+                    <TableCaption>A list of users</TableCaption>
 
                     <TableHeader>
                         <TableRow>
-                            <TableHead className="w-[100px]">ID</TableHead>
+                            <TableHead className="w-[80px]">Avatar</TableHead>
                             <TableHead
                                 className="cursor-pointer"
                                 onClick={() => handleSort('name')}
                             >
-                                Category <SortIcon field="name" sortField={sortField} sortDirection={sortDirection} />
+                                Name <SortIcon field="name" sortField={sortField} sortDirection={sortDirection} />
                             </TableHead>
+                            <TableHead
+                                className="cursor-pointer"
+                                onClick={() => handleSort('email')}
+                            >
+                                Email <SortIcon field="email" sortField={sortField} sortDirection={sortDirection} />
+                            </TableHead>
+                            <TableHead>Role</TableHead>
+                            <TableHead>Locked</TableHead>
                             <TableHead
                                 className="cursor-pointer"
                                 onClick={() => handleSort('created_at')}
                             >
                                 Created At <SortIcon field="created_at" sortField={sortField} sortDirection={sortDirection} />
                             </TableHead>
-                            <TableHead>Updated At</TableHead>
-                            <TableHead className="text-right">Action</TableHead>
+                            <TableHead className="text-right">Actions</TableHead>
                         </TableRow>
                     </TableHeader>
 
                     <TableBody>
-                        {localCategories.length > 0 ? (
-                            localCategories.map((category) => (
-                                <TableRow key={category.id}>
+                        {localUsers.length > 0 ? (
+                            localUsers.map((user) => (
+                                <TableRow key={user.id}>
+                                    <TableCell>
+                                        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary text-primary-foreground font-semibold">
+                                            {getInitials(user.name)}
+                                        </div>
+                                    </TableCell>
                                     <TableCell className="font-medium">
-                                        {category.id}
+                                        {user.name}
                                     </TableCell>
-                                    <TableCell>{category.name}</TableCell>
+                                    <TableCell>{user.email}</TableCell>
                                     <TableCell>
-                                        {formatDate(category.created_at)}
+                                        <span
+                                            className={`inline-flex items-center rounded-full px-2 py-1 text-xs font-medium ${
+                                                Number(user.role) === 1
+                                                    ? 'bg-purple-100 text-purple-700 dark:bg-purple-900 dark:text-purple-300'
+                                                    : 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300'
+                                            }`}
+                                        >
+                                            {Number(user.role) === 1 ? 'Admin' : 'User'}
+                                        </span>
                                     </TableCell>
                                     <TableCell>
-                                        {formatDate(category.updated_at)}
+                                        <Switch
+                                            checked={user.is_locked}
+                                            onCheckedChange={() => handleToggleLock(user)}
+                                            disabled={togglingIds.has(user.id)}
+                                            aria-label={user.is_locked ? 'Unlock user' : 'Lock user'}
+                                        />
+                                    </TableCell>
+                                    <TableCell>
+                                        {formatDate(user.created_at)}
                                     </TableCell>
                                     <TableCell className="text-right">
-                                        <CategoryActions
-                                            category={category}
-                                            onDelete={handleDelete}
-                                        />
+                                        <UserActions user={user} />
                                     </TableCell>
                                 </TableRow>
                             ))
                         ) : (
                             <TableRow>
-                                <TableCell colSpan={5} className="text-center">
-                                    No categories found.
+                                <TableCell colSpan={7} className="text-center">
+                                    No users found.
                                 </TableCell>
                             </TableRow>
                         )}
@@ -280,15 +330,19 @@ export default function CategoriesIndex() {
                 {/* Pagination controls */}
                 <div className="mt-4 flex items-center justify-between">
                     <div className="text-sm text-muted-foreground">
-                        Showing {categories.from ?? 0} to {categories.to ?? 0}{' '}
-                        of {categories.total} results
+                        Showing {users.from ?? 0} to {users.to ?? 0} of{' '}
+                        {users.total} results
                     </div>
 
                     <div className="flex gap-2">
-                        {categories.links.map((link, idx) => (
+                        {users.links.map((link, idx) => (
                             <button
                                 key={idx}
-                                className={`rounded px-3 py-1 ${link.active ? 'bg-primary text-primary-foreground' : 'hover:bg-muted'}`}
+                                className={`rounded px-3 py-1 ${
+                                    link.active
+                                        ? 'bg-primary text-primary-foreground'
+                                        : 'hover:bg-muted'
+                                }`}
                                 disabled={!link.url}
                                 onClick={() => link.url && router.get(link.url)}
                                 dangerouslySetInnerHTML={{ __html: link.label }}

@@ -33,6 +33,7 @@ class CheckBirthday extends Command
         $today = Carbon::today();
 
         $contacts = Contact::query()
+            ->where('status', true)
             ->whereMonth('birthday', $today->month)
             ->whereDay('birthday', $today->day)
             ->get();
@@ -48,6 +49,12 @@ class CheckBirthday extends Command
             $user = User::find($userId);
             if (!$user || empty($user->email)) {
                 $this->warn("Skipping user {$userId}: missing record or email.");
+                continue;
+            }
+
+            // Skip locked users
+            if ($user->is_locked) {
+                $this->warn("Skipping user {$userId}: account is locked.");
                 continue;
             }
 
