@@ -397,11 +397,21 @@ class ContactController extends Controller
         while (($row = fgetcsv($handle, 0, $delimiter)) !== false) {
             $rowNumber++;
 
+            // Skip completely empty rows silently
+            $rowContent = implode('', array_map('trim', $row));
+            if (empty($rowContent)) {
+                continue;
+            }
+
             $name = $row[$nameIndex] ?? null;
             $email = $emailIndex !== false ? ($row[$emailIndex] ?? null) : null;
             $phone = $phoneIndex !== false ? ($row[$phoneIndex] ?? null) : null;
             $birthday = $row[$birthdayIndex] ?? null;
             $categoryName = $categoryIndex !== false ? ($row[$categoryIndex] ?? null) : null;
+
+            // Trim whitespace
+            $name = is_string($name) ? trim($name) : null;
+            $birthday = is_string($birthday) ? trim($birthday) : null;
 
             // Validate required fields
             if (empty($name) || empty($birthday)) {
