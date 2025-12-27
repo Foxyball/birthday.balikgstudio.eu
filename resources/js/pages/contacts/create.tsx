@@ -31,7 +31,7 @@ export default function Contacts({
 }: {
     categories: Category[];
 }) {
-    const { data, setData, post, processing, errors, setError, clearErrors } = useForm<{
+    const { data, setData, processing, errors, setError } = useForm<{
         contactName: string;
         categoryID: number | null;
         email: string;

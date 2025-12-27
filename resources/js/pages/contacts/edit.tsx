@@ -39,7 +39,7 @@ export default function Edit({
     contact: Contact;
     categories: Category[];
 }) {
-    const { data, setData, put, processing, errors, setError, clearErrors } = useForm<{
+    const { data, setData, processing, errors, setError } = useForm<{
         name: string;
         email: string;
         phone: string;
@@ -129,7 +129,7 @@ export default function Edit({
         router.post(route('contacts.update', contact.id), formData, {
             forceFormData: true,
             onProgress: (progress) => {
-                if (progress.percentage) {
+                if (progress?.percentage) {
                     setUploadProgress(progress.percentage);
                 }
             },
