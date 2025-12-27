@@ -1,5 +1,6 @@
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Progress } from '@/components/ui/progress';
 import {
     Select,
     SelectContent,
@@ -9,9 +10,9 @@ import {
 } from '@/components/ui/select';
 import AppLayout from '@/layouts/app-layout';
 import { BreadcrumbItem } from '@/types';
-import { Head, useForm } from '@inertiajs/react';
+import { Head, router, useForm } from '@inertiajs/react';
 import { Label } from '@radix-ui/react-dropdown-menu';
-import { CalendarIcon } from 'lucide-react';
+import { CalendarIcon, UploadIcon } from 'lucide-react';
 import { route } from 'ziggy-js';
 import { cn } from '@/lib/utils';
 import React from 'react';
@@ -30,7 +31,7 @@ export default function Contacts({
 }: {
     categories: Category[];
 }) {
-    const { data, setData, post, processing, errors } = useForm<{
+    const { data, setData, post, processing, errors, setError, clearErrors } = useForm<{
         contactName: string;
         categoryID: number | null;
         email: string;
@@ -45,6 +46,8 @@ export default function Contacts({
         birthday: '',
         image: null,
     });
+
+    const [uploadProgress, setUploadProgress] = React.useState<number | null>(null);
 
     // Birthday fields and validation
     const months = React.useMemo(
@@ -105,7 +108,35 @@ export default function Contacts({
 
     function submit(e: React.FormEvent) {
         e.preventDefault();
-        post(route('contacts.store'));
+        
+        const formData = new FormData();
+        formData.append('contactName', data.contactName);
+        if (data.categoryID !== null) {
+            formData.append('categoryID', String(data.categoryID));
+        }
+        formData.append('email', data.email);
+        formData.append('phone', data.phone);
+        formData.append('birthday', data.birthday);
+        if (data.image) {
+            formData.append('image', data.image);
+        }
+
+        router.post(route('contacts.store'), formData, {
+            forceFormData: true,
+            onProgress: (progress) => {
+                if (progress?.percentage) {
+                    setUploadProgress(progress.percentage);
+                }
+            },
+            onFinish: () => {
+                setUploadProgress(null);
+            },
+            onError: (errors) => {
+                Object.entries(errors).forEach(([key, value]) => {
+                    setError(key as keyof typeof data, value as string);
+                });
+            },
+        });
     }
 
     return (
@@ -287,12 +318,23 @@ export default function Contacts({
                         )}
                     </div>
 
+                    {/* Upload Progress */}
+                    {uploadProgress !== null && (
+                        <div className="space-y-2">
+                            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                                <UploadIcon className="h-4 w-4 animate-pulse" />
+                                <span>Uploading... {Math.round(uploadProgress)}%</span>
+                            </div>
+                            <Progress value={uploadProgress} className="h-2" />
+                        </div>
+                    )}
+
                     <Button
                         className="mt-4"
                         type="submit"
-                        disabled={processing}
+                        disabled={processing || uploadProgress !== null}
                     >
-                        Add Contact
+                        {uploadProgress !== null ? 'Uploading...' : 'Add Contact'}
                     </Button>
                 </form>
             </div>
