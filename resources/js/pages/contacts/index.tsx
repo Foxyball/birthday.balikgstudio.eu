@@ -216,35 +216,6 @@ export default function ContactsIndex() {
         window.print();
     }, []);
 
-    const toCSV = React.useCallback((rows: Contact[]) => {
-        const headers = [
-            'name',
-            'email',
-            'phone',
-            'birthday',
-            'category',
-        ];
-        const escape = (val: unknown) => {
-            const s = val == null ? '' : String(val);
-            return '"' + s.replace(/"/g, '""') + '"';
-        };
-        const lines = rows.map((r) => {
-            const categoryName = (r as unknown as { category?: { name?: string }; category_name?: string }).category?.name
-                ?? (r as unknown as { category_name?: string }).category_name
-                ?? '';
-            return [
-                r.name,
-                r.email,
-                r.phone ?? '',
-                r.birthday ?? '',
-                categoryName,
-            ]
-                .map(escape)
-                .join(',');
-        });
-        return [headers.join(','), ...lines].join('\n');
-    }, []);
-
     const handleConfirmExport = React.useCallback(() => {
         try {
             // Use server-side export for all contacts with proper encoding
