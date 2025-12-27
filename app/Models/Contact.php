@@ -17,6 +17,8 @@ class Contact extends Model
         'phone',
         'birthday',
         'image',
+        'notes',
+        'gift_ideas',
     ];
 
     protected $appends = ['image_url'];

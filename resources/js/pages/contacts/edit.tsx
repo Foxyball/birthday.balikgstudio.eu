@@ -2,6 +2,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Progress } from '@/components/ui/progress';
+import { Textarea } from '@/components/ui/textarea';
 import AppLayout from '@/layouts/app-layout';
 import { Head, router, useForm } from '@inertiajs/react';
 import {
@@ -30,6 +31,8 @@ type Contact = {
     image?: string | null;
     image_url?: string | null;
     category_id: number;
+    notes?: string | null;
+    gift_ideas?: string | null;
 };
 
 export default function Edit({
@@ -46,6 +49,8 @@ export default function Edit({
         birthday: string;
         image: File | null;
         category_id: number;
+        notes: string;
+        gift_ideas: string;
     }>({
         name: contact.name,
         email: contact.email,
@@ -53,6 +58,8 @@ export default function Edit({
         birthday: contact.birthday,
         image: null,
         category_id: contact.category_id,
+        notes: contact.notes ?? '',
+        gift_ideas: contact.gift_ideas ?? '',
     });
 
     const [uploadProgress, setUploadProgress] = React.useState<number | null>(null);
@@ -130,6 +137,12 @@ export default function Edit({
         formData.append('birthday', data.birthday);
         if (data.image) {
             formData.append('image', data.image);
+        }
+        if (data.notes) {
+            formData.append('notes', data.notes);
+        }
+        if (data.gift_ideas) {
+            formData.append('gift_ideas', data.gift_ideas);
         }
 
         router.post(route('contacts.update', contact.id), formData, {
@@ -278,6 +291,36 @@ export default function Edit({
                     </div>
                     {errors.birthday && (
                         <span className="text-sm text-red-600">{errors.birthday}</span>
+                    )}
+                </div>
+
+                {/* Notes */}
+                <div className="gap-1.5">
+                    <Label htmlFor="notes">Notes</Label>
+                    <Textarea
+                        id="notes"
+                        placeholder="Personal notes about this contact..."
+                        value={data.notes}
+                        onChange={(e) => setData('notes', e.target.value)}
+                        rows={3}
+                    />
+                    {errors.notes && (
+                        <span className="text-sm text-red-600">{errors.notes}</span>
+                    )}
+                </div>
+
+                {/* Gift Ideas */}
+                <div className="gap-1.5">
+                    <Label htmlFor="gift_ideas">Gift Ideas</Label>
+                    <Textarea
+                        id="gift_ideas"
+                        placeholder="Gift ideas for this person..."
+                        value={data.gift_ideas}
+                        onChange={(e) => setData('gift_ideas', e.target.value)}
+                        rows={3}
+                    />
+                    {errors.gift_ideas && (
+                        <span className="text-sm text-red-600">{errors.gift_ideas}</span>
                     )}
                 </div>
 

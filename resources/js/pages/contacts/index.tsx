@@ -247,23 +247,15 @@ export default function ContactsIndex() {
 
     const handleConfirmExport = React.useCallback(() => {
         try {
-            const csv = toCSV(localContacts);
-            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = 'contacts.csv';
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            URL.revokeObjectURL(url);
+            // Use server-side export for all contacts with proper encoding
+            window.location.href = route('contacts.export');
             toast.success('CSV export started');
         } catch {
             toast.error('Failed to export CSV');
         } finally {
             setIsExportOpen(false);
         }
-    }, [localContacts, toCSV]);
+    }, []);
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>

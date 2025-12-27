@@ -1,6 +1,7 @@
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Progress } from '@/components/ui/progress';
+import { Textarea } from '@/components/ui/textarea';
 import {
     Select,
     SelectContent,
@@ -38,6 +39,8 @@ export default function Contacts({
         phone: string;
         birthday: string;
         image: File | null;
+        notes: string;
+        gift_ideas: string;
     }>({
         contactName: '',
         categoryID: null,
@@ -45,6 +48,8 @@ export default function Contacts({
         phone: '',
         birthday: '',
         image: null,
+        notes: '',
+        gift_ideas: '',
     });
 
     const [uploadProgress, setUploadProgress] = React.useState<number | null>(null);
@@ -123,6 +128,12 @@ export default function Contacts({
         formData.append('birthday', data.birthday);
         if (data.image) {
             formData.append('image', data.image);
+        }
+        if (data.notes) {
+            formData.append('notes', data.notes);
+        }
+        if (data.gift_ideas) {
+            formData.append('gift_ideas', data.gift_ideas);
         }
 
         router.post(route('contacts.store'), formData, {
@@ -298,6 +309,38 @@ export default function Contacts({
                         {(errors.birthday) && (
                             <span className="text-sm text-red-600">
                                 {errors.birthday}
+                            </span>
+                        )}
+                    </div>
+
+                    {/* Notes */}
+                    <div className="gap-1.5 mb-3">
+                        <Label>Notes</Label>
+                        <Textarea
+                            placeholder="Personal notes about this contact..."
+                            value={data.notes}
+                            onChange={(e) => setData('notes', e.target.value)}
+                            rows={3}
+                        />
+                        {errors.notes && (
+                            <span className="text-sm text-red-600">
+                                {errors.notes}
+                            </span>
+                        )}
+                    </div>
+
+                    {/* Gift Ideas */}
+                    <div className="gap-1.5 mb-3">
+                        <Label>Gift Ideas</Label>
+                        <Textarea
+                            placeholder="Gift ideas for this person..."
+                            value={data.gift_ideas}
+                            onChange={(e) => setData('gift_ideas', e.target.value)}
+                            rows={3}
+                        />
+                        {errors.gift_ideas && (
+                            <span className="text-sm text-red-600">
+                                {errors.gift_ideas}
                             </span>
                         )}
                     </div>

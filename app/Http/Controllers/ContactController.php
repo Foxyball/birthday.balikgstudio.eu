@@ -83,6 +83,8 @@ class ContactController extends Controller
             'phone' => $request->phone,
             'birthday' => $request->birthday,
             'image' => $imagePath,
+            'notes' => $request->notes,
+            'gift_ideas' => $request->gift_ideas,
         ]);
 
         $success = "Contact created successfully.";
@@ -121,6 +123,8 @@ class ContactController extends Controller
             'category_id' => $request->category_id === '' || $request->category_id === '0' ? null : $request->category_id,
             'email' => $request->email === '' ? null : $request->email,
             'phone' => $request->phone === '' ? null : $request->phone,
+            'notes' => $request->notes === '' ? null : $request->notes,
+            'gift_ideas' => $request->gift_ideas === '' ? null : $request->gift_ideas,
         ]);
 
         $request->validate([
@@ -130,6 +134,8 @@ class ContactController extends Controller
             'phone' => 'nullable|string|max:20',
             'birthday' => 'required|date',
             'image' => 'nullable',
+            'notes' => 'nullable|string|max:65535',
+            'gift_ideas' => 'nullable|string|max:65535',
         ]);
 
         $contact = Contact::findOrFail($id);
@@ -158,6 +164,8 @@ class ContactController extends Controller
             'phone' => $request->phone,
             'birthday' => $request->birthday,
             'image' => $imagePath,
+            'notes' => $request->notes,
+            'gift_ideas' => $request->gift_ideas,
         ]);
 
         $success = 'Contact updated successfully.';
@@ -198,6 +206,66 @@ class ContactController extends Controller
             'status' => $contact->status,
             'message' => $contact->status ? 'Contact activated.' : 'Contact deactivated.',
         ]);
+    }
+
+    /**
+     * Export contacts to CSV.
+     */
+    public function export()
+    {
+        $contacts = Contact::with('category')
+            ->where('user_id', Auth::id())
+            ->orderBy('name')
+            ->get();
+
+        $headers = [
+            'Content-Type' => 'text/csv; charset=UTF-8',
+            'Content-Disposition' => 'attachment; filename="contacts_export_' . date('Y-m-d') . '.csv"',
+            'Pragma' => 'no-cache',
+            'Cache-Control' => 'must-revalidate, post-check=0, pre-check=0',
+            'Expires' => '0',
+        ];
+
+        $callback = function () use ($contacts) {
+            $file = fopen('php://output', 'w');
+            
+            // Add UTF-8 BOM for Excel compatibility
+            fwrite($file, "\xEF\xBB\xBF");
+            
+            // Helper function to escape CSV field
+            $escapeField = function ($field) {
+                $field = str_replace('"', '""', $field ?? '');
+                // Wrap in quotes if contains comma, newline, or quote
+                if (preg_match('/[,"\r\n]/', $field)) {
+                    return '"' . $field . '"';
+                }
+                return $field;
+            };
+            
+            // Header row
+            $headers = ['Name', 'Email', 'Phone', 'Birthday', 'Category', 'Status', 'Notes', 'Gift Ideas', 'Created At'];
+            fwrite($file, implode(';', $headers) . "\r\n");
+            
+            // Data rows
+            foreach ($contacts as $contact) {
+                $row = [
+                    $escapeField($contact->name),
+                    $escapeField($contact->email),
+                    $escapeField($contact->phone),
+                    $escapeField($contact->birthday),
+                    $escapeField($contact->category?->name),
+                    $contact->status ? 'Active' : 'Inactive',
+                    $escapeField($contact->notes),
+                    $escapeField($contact->gift_ideas),
+                    $contact->created_at->format('Y-m-d H:i:s'),
+                ];
+                fwrite($file, implode(';', $row) . "\r\n");
+            }
+            
+            fclose($file);
+        };
+
+        return response()->stream($callback, 200, $headers);
     }
 
     /**
@@ -275,8 +343,10 @@ class ContactController extends Controller
             ], 422);
         }
 
-        // Clean up header - remove any remaining BOM or special chars
-        $header[0] = preg_replace('/^[\x00-\x1F\x7F-\xFF]*/', '', $header[0] ?? '');
+        // Clean up header - remove BOM characters only from first cell
+        if (!empty($header[0])) {
+            $header[0] = preg_replace('/^\xEF\xBB\xBF/', '', $header[0]);
+        }
 
         // Skip Excel sep= directive if present (e.g., "sep=,")
         $firstCell = trim($header[0] ?? '');
@@ -288,6 +358,10 @@ class ContactController extends Controller
                     'success' => false,
                     'message' => 'CSV file is empty or invalid.',
                 ], 422);
+            }
+            // Clean BOM from new header if present
+            if (!empty($header[0])) {
+                $header[0] = preg_replace('/^\xEF\xBB\xBF/', '', $header[0]);
             }
         }
 

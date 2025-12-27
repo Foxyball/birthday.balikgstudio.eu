@@ -28,6 +28,8 @@ class StoreContactsRequest extends FormRequest
             'phone' => 'nullable|string|max:20',
             'birthday' => 'required|date',
             'image' => 'nullable|image|max:2048',
+            'notes' => 'nullable|string|max:65535',
+            'gift_ideas' => 'nullable|string|max:65535',
         ];
     }
 
@@ -40,6 +42,8 @@ class StoreContactsRequest extends FormRequest
             'categoryID' => $this->categoryID === '' || $this->categoryID === null ? null : $this->categoryID,
             'email' => $this->email === '' ? null : $this->email,
             'phone' => $this->phone === '' ? null : $this->phone,
+            'notes' => $this->notes === '' ? null : $this->notes,
+            'gift_ideas' => $this->gift_ideas === '' ? null : $this->gift_ideas,
         ]);
     }
 }
