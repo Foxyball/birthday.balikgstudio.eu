@@ -23,8 +23,8 @@ class StoreContactsRequest extends FormRequest
     {
         return [
             'contactName' => 'required|string|max:255',
-            'categoryID' => 'required|integer|exists:categories,id',
-            'email' => 'required|email|unique:contacts,email',
+            'categoryID' => 'nullable|integer|exists:categories,id',
+            'email' => 'nullable|email|unique:contacts,email',
             'phone' => 'nullable|string|max:20',
             'birthday' => 'required|date',
             'image' => 'nullable|image|max:2048',
