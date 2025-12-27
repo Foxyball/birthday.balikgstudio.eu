@@ -31,7 +31,7 @@ export default function Contacts({
 }: {
     categories: Category[];
 }) {
-    const { data, setData, post, processing, errors, setError, clearErrors } = useForm<{
+    const { data, setData, processing, errors, setError } = useForm<{
         contactName: string;
         categoryID: number | null;
         email: string;
@@ -114,8 +114,12 @@ export default function Contacts({
         if (data.categoryID !== null) {
             formData.append('categoryID', String(data.categoryID));
         }
-        formData.append('email', data.email);
-        formData.append('phone', data.phone);
+        if (data.email) {
+            formData.append('email', data.email);
+        }
+        if (data.phone) {
+            formData.append('phone', data.phone);
+        }
         formData.append('birthday', data.birthday);
         if (data.image) {
             formData.append('image', data.image);
@@ -147,7 +151,7 @@ export default function Contacts({
                 <form onSubmit={submit} encType="multipart/form-data">
                     {/* Contact name */}
                     <div className="gap-1.5 mb-3">
-                        <Label>Contact name</Label>
+                        <Label>Contact name <span className="text-red-500">*</span></Label>
                         <Input
                             placeholder="Contact name"
                             value={data.contactName}
@@ -248,7 +252,7 @@ export default function Contacts({
 
                     {/* Birthday – Month / Day / Year (optional) */}
                     <div className="gap-1.5 mb-3">
-                        <Label>Birthday</Label>
+                        <Label>Birthday <span className="text-red-500">*</span></Label>
                         <div className={cn('flex items-center gap-2', (errors.birthday) && 'aria-[invalid=true]:border-red-500')} aria-invalid={!!errors.birthday}>
                             <CalendarIcon className="h-4 w-4 text-muted-foreground" />
                             <Select value={birthMonth} onValueChange={(value) => setBirthMonth(value)}>

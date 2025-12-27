@@ -40,7 +40,7 @@ export default function UsersCreate() {
 
                 <form onSubmit={submit} className="space-y-4">
                     <div className="space-y-1.5">
-                        <Label htmlFor="name">Name</Label>
+                        <Label htmlFor="name">Name <span className="text-red-500">*</span></Label>
                         <Input
                             id="name"
                             placeholder="Full name"
@@ -67,7 +67,7 @@ export default function UsersCreate() {
                     </div>
 
                     <div className="space-y-1.5">
-                        <Label htmlFor="email">Email</Label>
+                        <Label htmlFor="email">Email <span className="text-red-500">*</span></Label>
                         <Input
                             id="email"
                             type="email"
@@ -95,7 +95,7 @@ export default function UsersCreate() {
                     </div>
 
                     <div className="space-y-1.5">
-                        <Label htmlFor="password">Password</Label>
+                        <Label htmlFor="password">Password <span className="text-red-500">*</span></Label>
                         <Input
                             id="password"
                             type="password"
@@ -126,7 +126,7 @@ export default function UsersCreate() {
 
                     <div className="space-y-1.5">
                         <Label htmlFor="password_confirmation">
-                            Confirm Password
+                            Confirm Password <span className="text-red-500">*</span>
                         </Label>
                         <Input
                             id="password_confirmation"

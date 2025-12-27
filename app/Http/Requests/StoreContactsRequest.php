@@ -23,11 +23,23 @@ class StoreContactsRequest extends FormRequest
     {
         return [
             'contactName' => 'required|string|max:255',
-            'categoryID' => 'required|integer|exists:categories,id',
-            'email' => 'required|email|unique:contacts,email',
+            'categoryID' => 'nullable|integer|exists:categories,id',
+            'email' => 'nullable|email|unique:contacts,email',
             'phone' => 'nullable|string|max:20',
             'birthday' => 'required|date',
             'image' => 'nullable|image|max:2048',
         ];
+    }
+
+    /**
+     * Prepare the data for validation.
+     */
+    protected function prepareForValidation(): void
+    {
+        $this->merge([
+            'categoryID' => $this->categoryID === '' || $this->categoryID === null ? null : $this->categoryID,
+            'email' => $this->email === '' ? null : $this->email,
+            'phone' => $this->phone === '' ? null : $this->phone,
+        ]);
     }
 }

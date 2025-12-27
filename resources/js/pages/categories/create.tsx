@@ -27,7 +27,7 @@ export default function Categories() {
             <div className="w-8/12 p-4">
                 <form onSubmit={submit}>
                     <div className="gap-1.5">
-                        <Label>Category name</Label>
+                        <Label>Category name <span className="text-red-500">*</span></Label>
                         <Input
                             placeholder="Category name"
                             value={data.catName}

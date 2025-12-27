@@ -24,6 +24,8 @@ Route::middleware(['auth', 'verified', 'admin'])->group(function () {
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::resource('contacts', ContactController::class);
     Route::patch('contacts/{contact}/toggle-status', [ContactController::class, 'toggleStatus'])->name('contacts.toggle-status');
+    Route::get('contacts-import/template', [ContactController::class, 'importTemplate'])->name('contacts.import.template');
+    Route::post('contacts-import', [ContactController::class, 'import'])->name('contacts.import');
 });
 
 require __DIR__ . '/settings.php';

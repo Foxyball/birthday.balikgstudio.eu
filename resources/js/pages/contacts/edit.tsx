@@ -39,7 +39,7 @@ export default function Edit({
     contact: Contact;
     categories: Category[];
 }) {
-    const { data, setData, put, processing, errors, setError, clearErrors } = useForm<{
+    const { data, setData, processing, errors, setError } = useForm<{
         name: string;
         email: string;
         phone: string;
@@ -118,9 +118,15 @@ export default function Edit({
         const formData = new FormData();
         formData.append('_method', 'PUT');
         formData.append('name', data.name);
-        formData.append('category_id', String(data.category_id));
-        formData.append('email', data.email);
-        formData.append('phone', data.phone);
+        if (data.category_id) {
+            formData.append('category_id', String(data.category_id));
+        }
+        if (data.email) {
+            formData.append('email', data.email);
+        }
+        if (data.phone) {
+            formData.append('phone', data.phone);
+        }
         formData.append('birthday', data.birthday);
         if (data.image) {
             formData.append('image', data.image);
@@ -129,7 +135,7 @@ export default function Edit({
         router.post(route('contacts.update', contact.id), formData, {
             forceFormData: true,
             onProgress: (progress) => {
-                if (progress.percentage) {
+                if (progress?.percentage) {
                     setUploadProgress(progress.percentage);
                 }
             },
@@ -159,7 +165,7 @@ export default function Edit({
             <form onSubmit={submit} encType="multipart/form-data" className="max-w-xl space-y-4 p-4">
                 {/* Contact name */}
                 <div className="gap-1.5">
-                    <Label htmlFor="name">Contact name</Label>
+                    <Label htmlFor="name">Contact name <span className="text-red-500">*</span></Label>
                     <Input
                         id="name"
                         placeholder="Contact name"
@@ -230,7 +236,7 @@ export default function Edit({
 
                 {/* Birthday – Month / Day / Year (optional) */}
                 <div className="gap-1.5">
-                    <Label htmlFor="birthday-month">Birthday</Label>
+                    <Label htmlFor="birthday-month">Birthday <span className="text-red-500">*</span></Label>
                     <div className={cn('flex items-center gap-2', errors.birthday && 'aria-[invalid=true]:border-red-500')} aria-invalid={!!errors.birthday}>
                         <div className="flex items-center">
                             <CalendarIcon className="mr-2 h-4 w-4 text-muted-foreground" />
