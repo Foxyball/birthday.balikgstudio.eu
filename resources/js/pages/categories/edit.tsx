@@ -37,7 +37,7 @@ export default function Edit({ category }: Props) {
 
             <form onSubmit={handleUpdate} className="max-w-md space-y-4">
                 <div>
-                    <Label htmlFor="name">Category name</Label>
+                    <Label htmlFor="name">Category name <span className="text-red-500">*</span></Label>
                     <Input
                         id="name"
                         value={data.name}

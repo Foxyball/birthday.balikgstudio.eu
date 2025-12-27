@@ -159,7 +159,7 @@ export default function Edit({
             <form onSubmit={submit} encType="multipart/form-data" className="max-w-xl space-y-4 p-4">
                 {/* Contact name */}
                 <div className="gap-1.5">
-                    <Label htmlFor="name">Contact name</Label>
+                    <Label htmlFor="name">Contact name <span className="text-red-500">*</span></Label>
                     <Input
                         id="name"
                         placeholder="Contact name"
@@ -230,7 +230,7 @@ export default function Edit({
 
                 {/* Birthday – Month / Day / Year (optional) */}
                 <div className="gap-1.5">
-                    <Label htmlFor="birthday-month">Birthday</Label>
+                    <Label htmlFor="birthday-month">Birthday <span className="text-red-500">*</span></Label>
                     <div className={cn('flex items-center gap-2', errors.birthday && 'aria-[invalid=true]:border-red-500')} aria-invalid={!!errors.birthday}>
                         <div className="flex items-center">
                             <CalendarIcon className="mr-2 h-4 w-4 text-muted-foreground" />

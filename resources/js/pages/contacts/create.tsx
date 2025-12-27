@@ -147,7 +147,7 @@ export default function Contacts({
                 <form onSubmit={submit} encType="multipart/form-data">
                     {/* Contact name */}
                     <div className="gap-1.5 mb-3">
-                        <Label>Contact name</Label>
+                        <Label>Contact name <span className="text-red-500">*</span></Label>
                         <Input
                             placeholder="Contact name"
                             value={data.contactName}
@@ -248,7 +248,7 @@ export default function Contacts({
 
                     {/* Birthday – Month / Day / Year (optional) */}
                     <div className="gap-1.5 mb-3">
-                        <Label>Birthday</Label>
+                        <Label>Birthday <span className="text-red-500">*</span></Label>
                         <div className={cn('flex items-center gap-2', (errors.birthday) && 'aria-[invalid=true]:border-red-500')} aria-invalid={!!errors.birthday}>
                             <CalendarIcon className="h-4 w-4 text-muted-foreground" />
                             <Select value={birthMonth} onValueChange={(value) => setBirthMonth(value)}>

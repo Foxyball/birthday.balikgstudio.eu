@@ -45,7 +45,7 @@ export default function UsersEdit({ user }: Props) {
 
                 <form onSubmit={handleUpdate} className="space-y-4">
                     <div className="space-y-1.5">
-                        <Label htmlFor="name">Name</Label>
+                        <Label htmlFor="name">Name <span className="text-red-500">*</span></Label>
                         <Input
                             id="name"
                             placeholder="Full name"
@@ -73,7 +73,7 @@ export default function UsersEdit({ user }: Props) {
                     </div>
 
                     <div className="space-y-1.5">
-                        <Label htmlFor="email">Email</Label>
+                        <Label htmlFor="email">Email <span className="text-red-500">*</span></Label>
                         <Input
                             id="email"
                             type="email"
