@@ -27,6 +27,7 @@ type Contact = {
     phone?: string | null;
     birthday: string;
     image?: string | null;
+    image_url?: string | null;
     category_id: number;
 };
 
@@ -247,10 +248,10 @@ export default function Edit({
                 {/* Image */}
                 <div className="gap-1.5">
                     <Label htmlFor="image">Image</Label>
-                    {contact.image && (
+                    {contact.image_url && (
                         <div className="mb-2 flex items-center gap-3">
                             <img
-                                src={contact.image}
+                                src={contact.image_url}
                                 alt={`${contact.name} current image`}
                                 className="h-16 w-16 rounded object-cover border"
                             />

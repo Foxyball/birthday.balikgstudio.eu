@@ -70,8 +70,10 @@ class ContactController extends Controller
      */
     public function store(StoreContactsRequest $request)
     {
-
-        $imageData = ImageHelper::normalize($request->file('image'));
+        $imagePath = null;
+        if ($request->hasFile('image')) {
+            $imagePath = ImageHelper::store($request->file('image'));
+        }
 
         Contact::create([
             'user_id' => Auth::user()->id,
@@ -80,7 +82,7 @@ class ContactController extends Controller
             'email' => $request->email,
             'phone' => $request->phone,
             'birthday' => $request->birthday,
-            'image' => $imageData,
+            'image' => $imagePath,
         ]);
 
         $success = "Contact created successfully.";
@@ -125,7 +127,22 @@ class ContactController extends Controller
 
         $contact = Contact::findOrFail($id);
 
-        $imageData = ImageHelper::normalize($request->image) ?? $contact->image;
+        $imagePath = $contact->image;
+
+        // Handle new image upload
+        if ($request->hasFile('image')) {
+            $imagePath = ImageHelper::store($request->file('image'), $contact->image);
+        } elseif ($request->has('image') && is_string($request->image)) {
+            // Handle base64 string or existing path
+            if (str_starts_with($request->image, 'data:')) {
+                $imagePath = ImageHelper::store($request->image, $contact->image);
+            } elseif ($request->image === null || $request->image === '') {
+                // Image removed
+                ImageHelper::delete($contact->image);
+                $imagePath = null;
+            }
+            // If it's an existing path (not data URL), keep it as is
+        }
 
         $contact->update([
             'name' => $request->name,
@@ -133,7 +150,7 @@ class ContactController extends Controller
             'email' => $request->email,
             'phone' => $request->phone,
             'birthday' => $request->birthday,
-            'image' => $imageData,
+            'image' => $imagePath,
         ]);
 
         $success = 'Contact updated successfully.';
@@ -146,6 +163,12 @@ class ContactController extends Controller
     public function destroy(string $id)
     {
         $contact = Contact::findOrFail($id);
+        
+        // Delete the image file if exists
+        if ($contact->image) {
+            ImageHelper::delete($contact->image);
+        }
+        
         $contact->delete();
 
         $success = 'Contact deleted successfully.';

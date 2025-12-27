@@ -33,6 +33,7 @@ interface Contact {
     category_id?: number;
     status: boolean;
     image?: string | null;
+    image_url?: string | null;
     created_at: string;
     updated_at?: string | null;
 }
