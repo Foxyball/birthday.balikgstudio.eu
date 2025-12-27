@@ -30,4 +30,16 @@ class StoreContactsRequest extends FormRequest
             'image' => 'nullable|image|max:2048',
         ];
     }
+
+    /**
+     * Prepare the data for validation.
+     */
+    protected function prepareForValidation(): void
+    {
+        $this->merge([
+            'categoryID' => $this->categoryID === '' || $this->categoryID === null ? null : $this->categoryID,
+            'email' => $this->email === '' ? null : $this->email,
+            'phone' => $this->phone === '' ? null : $this->phone,
+        ]);
+    }
 }

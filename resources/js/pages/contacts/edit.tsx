@@ -118,9 +118,15 @@ export default function Edit({
         const formData = new FormData();
         formData.append('_method', 'PUT');
         formData.append('name', data.name);
-        formData.append('category_id', String(data.category_id));
-        formData.append('email', data.email);
-        formData.append('phone', data.phone);
+        if (data.category_id) {
+            formData.append('category_id', String(data.category_id));
+        }
+        if (data.email) {
+            formData.append('email', data.email);
+        }
+        if (data.phone) {
+            formData.append('phone', data.phone);
+        }
         formData.append('birthday', data.birthday);
         if (data.image) {
             formData.append('image', data.image);

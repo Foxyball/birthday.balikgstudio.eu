@@ -114,8 +114,12 @@ export default function Contacts({
         if (data.categoryID !== null) {
             formData.append('categoryID', String(data.categoryID));
         }
-        formData.append('email', data.email);
-        formData.append('phone', data.phone);
+        if (data.email) {
+            formData.append('email', data.email);
+        }
+        if (data.phone) {
+            formData.append('phone', data.phone);
+        }
         formData.append('birthday', data.birthday);
         if (data.image) {
             formData.append('image', data.image);
