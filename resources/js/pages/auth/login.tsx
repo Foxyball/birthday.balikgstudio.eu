@@ -26,7 +26,7 @@ export default function Login({
         <AuthLayout
             title="Log in to your account"
             description="Enter your email and password below to log in"
-            imageUrl="/images/auth-left.svg"
+            imageUrl="/images/auth-logo.png"
         >
             <Head title="Login" />
 
