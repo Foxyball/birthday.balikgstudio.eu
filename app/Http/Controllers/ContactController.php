@@ -43,8 +43,6 @@ class ContactController extends Controller
             ->paginate(20)
             ->withQueryString();
 
-        $user = Auth::user();
-
         return Inertia::render('contacts/index', [
             'contacts' => $contacts,
             'filters' => [
@@ -52,7 +50,6 @@ class ContactController extends Controller
                 'sort' => $sortField,
                 'direction' => $sortDirection,
             ],
-            'canAddContact' => $user->role === 1 || $user->subscribed('default') || $user->contacts()->count() < 20,
         ]);
     }
 
@@ -73,14 +70,6 @@ class ContactController extends Controller
      */
     public function store(StoreContactsRequest $request)
     {
-        // Check if user can add more contacts (admins have unlimited)
-        $user = Auth::user();
-        if ($user->role !== 1 && !$user->subscribed('default') && $user->contacts()->count() >= 20) {
-            return back()->withErrors([
-                'limit' => 'You have reached the free plan limit of 20 contacts. Please subscribe to add more contacts.'
-            ]);
-        }
-
         $imagePath = null;
         if ($request->hasFile('image')) {
             $imagePath = ImageHelper::store($request->file('image'));
@@ -129,6 +118,13 @@ class ContactController extends Controller
      */
     public function update(Request $request, string $id)
     {
+        $contact = Contact::findOrFail($id);
+
+        // Prevent editing locked contacts
+        if ($contact->is_locked) {
+            return redirect()->route('contacts.index')->with('error', 'This contact is locked. Upgrade to Pro to unlock and edit.');
+        }
+
         // Convert empty strings to null
         $request->merge([
             'category_id' => $request->category_id === '' || $request->category_id === '0' ? null : $request->category_id,
@@ -148,8 +144,6 @@ class ContactController extends Controller
             'notes' => 'nullable|string|max:65535',
             'gift_ideas' => 'nullable|string|max:65535',
         ]);
-
-        $contact = Contact::findOrFail($id);
 
         $imagePath = $contact->image;
 
@@ -189,6 +183,11 @@ class ContactController extends Controller
     public function destroy(string $id)
     {
         $contact = Contact::findOrFail($id);
+
+        // Prevent deleting locked contacts
+        if ($contact->is_locked) {
+            return redirect()->route('contacts.index')->with('error', 'This contact is locked. Upgrade to Pro to unlock and delete.');
+        }
 
         // Delete the image file if exists
         if ($contact->image) {

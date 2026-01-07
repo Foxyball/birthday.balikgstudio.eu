@@ -16,6 +16,10 @@ class StripeWebhookController extends WebhookController
      */
     protected function handleCustomerSubscriptionCreated(array $payload)
     {
+        // Let Cashier create the subscription first
+        parent::handleCustomerSubscriptionCreated($payload);
+        
+        // Then unlock user contacts
         $this->unlockUserContacts($payload);
         
         return $this->successMethod();
@@ -29,6 +33,9 @@ class StripeWebhookController extends WebhookController
      */
     protected function handleCustomerSubscriptionUpdated(array $payload)
     {
+        // Let Cashier update the subscription first
+        parent::handleCustomerSubscriptionUpdated($payload);
+        
         $subscription = $payload['data']['object'];
         $status = $subscription['status'];
 
@@ -52,7 +59,30 @@ class StripeWebhookController extends WebhookController
      */
     protected function handleCustomerSubscriptionDeleted(array $payload)
     {
+        // Let Cashier handle the deletion first
+        parent::handleCustomerSubscriptionDeleted($payload);
+        
+        // Then lock user contacts
         $this->lockUserContacts($payload);
+        
+        return $this->successMethod();
+    }
+
+    /**
+     * Handle checkout session completed event.
+     * This fires immediately when payment succeeds, before subscription.created
+     *
+     * @param  array  $payload
+     * @return \Symfony\Component\HttpFoundation\Response
+     */
+    protected function handleCheckoutSessionCompleted(array $payload)
+    {
+        $session = $payload['data']['object'];
+        
+        // Only process if this was for a subscription
+        if ($session['mode'] === 'subscription' && isset($session['customer'])) {
+            $this->unlockUserContactsByCustomerId($session['customer']);
+        }
         
         return $this->successMethod();
     }
@@ -66,6 +96,26 @@ class StripeWebhookController extends WebhookController
     protected function unlockUserContacts(array $payload)
     {
         $user = $this->getUserByStripeId($payload['data']['object']['customer']);
+        
+        if ($user) {
+            $user->contacts()
+                ->where('is_locked', true)
+                ->update([
+                    'is_locked' => false,
+                    'locked_at' => null,
+                ]);
+        }
+    }
+
+    /**
+     * Unlock all locked contacts for the user by customer ID.
+     *
+     * @param  string  $customerId
+     * @return void
+     */
+    protected function unlockUserContactsByCustomerId(string $customerId)
+    {
+        $user = $this->getUserByStripeId($customerId);
         
         if ($user) {
             $user->contacts()
