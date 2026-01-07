@@ -25,7 +25,7 @@ import { BreadcrumbItem, PaginatedResponse, type SharedData } from '@/types';
 import { Head, router, usePage } from '@inertiajs/react';
 import React from 'react';
 import { useClipboard } from '@/hooks/use-clipboard';
-import { Copy, Check, Plus, Download, Printer, X, SearchIcon, ArrowUpIcon, ArrowDownIcon } from 'lucide-react';
+import { Copy, Check, Plus, Download, Printer, X, SearchIcon, ArrowUpIcon, ArrowDownIcon, Sparkles } from 'lucide-react';
 import { toast } from 'sonner';
 import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip';
 import {
