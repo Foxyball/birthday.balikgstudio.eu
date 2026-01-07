@@ -51,6 +51,10 @@ class ProfileController extends Controller
 
         $user = $request->user();
 
+        if ($user->subscribed('default')) {
+            $user->subscription('default')->cancel();
+        }
+
         Auth::logout();
 
         $user->delete();

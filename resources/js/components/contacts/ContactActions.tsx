@@ -23,6 +23,8 @@ import contacts from '@/routes/contacts';
 import { router } from '@inertiajs/react';
 import { EditIcon, MoreHorizontalIcon, Trash2Icon } from 'lucide-react';
 import { Spinner } from '@/components/ui/spinner';
+import { Lock } from 'lucide-react';
+import { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider } from '@/components/ui/tooltip';
 
 interface Contact {
     id: number;
@@ -36,6 +38,7 @@ interface Contact {
     image_url?: string | null;
     created_at: string;
     updated_at?: string | null;
+    is_locked?: boolean;
 }
 
 interface ContactActionsProps {
@@ -71,48 +74,72 @@ export default function ContactActions({ contact, onDelete }: ContactActionsProp
 
     return (
         <AlertDialog open={open} onOpenChange={setOpen}>
-            <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                    <Button
-                        variant="outline"
-                        size="icon"
-                        aria-label={`More options for ${contact.name}`}
-                    >
-                        <MoreHorizontalIcon className="h-4 w-4" />
-                    </Button>
-                </DropdownMenuTrigger>
-
-                <DropdownMenuContent align="end" className="w-52">
-                    <DropdownMenuGroup>
-                        <DropdownMenuItem asChild>
-                            <Button
-                                variant="ghost"
-                                className="w-full justify-start"
-                                onClick={() => router.get(contacts.edit(contact.id).url)}
-                            >
-                                <EditIcon className="mr-2 h-4 w-4" />
-                                Edit
-                            </Button>
-                        </DropdownMenuItem>
-                    </DropdownMenuGroup>
-
-                    <DropdownMenuSeparator />
-
-                    <DropdownMenuGroup>
-                        <DropdownMenuItem asChild>
-                            <AlertDialogTrigger asChild>
+            <TooltipProvider>
+                {contact.is_locked ? (
+                    <Tooltip delayDuration={0}>
+                        <TooltipTrigger asChild>
+                            <span tabIndex={0}>
                                 <Button
-                                    variant="destructive"
-                                    className="w-full justify-start"
+                                    variant="outline"
+                                    size="icon"
+                                    aria-label={`Contact locked: ${contact.name}`}
+                                    disabled
+                                    className="pointer-events-none"
                                 >
-                                    <Trash2Icon className="mr-2 h-4 w-4" />
-                                    Delete
+                                    <Lock className="h-4 w-4 text-red-500" />
                                 </Button>
-                            </AlertDialogTrigger>
-                        </DropdownMenuItem>
-                    </DropdownMenuGroup>
-                </DropdownMenuContent>
-            </DropdownMenu>
+                            </span>
+                        </TooltipTrigger>
+                        <TooltipContent side="left" className="bg-red-600 text-white border-red-600">
+                            <p className="font-semibold">This contact is locked</p>
+                            <p className="text-xs">Subscribe to Pro to unlock and manage</p>
+                        </TooltipContent>
+                    </Tooltip>
+                ) : (
+                    <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                            <Button
+                                variant="outline"
+                                size="icon"
+                                aria-label={`More options for ${contact.name}`}
+                            >
+                                <MoreHorizontalIcon className="h-4 w-4" />
+                            </Button>
+                        </DropdownMenuTrigger>
+
+                        <DropdownMenuContent align="end" className="w-52">
+                            <DropdownMenuGroup>
+                                <DropdownMenuItem asChild>
+                                    <Button
+                                        variant="ghost"
+                                        className="w-full justify-start"
+                                        onClick={() => router.get(contacts.edit(contact.id).url)}
+                                    >
+                                        <EditIcon className="mr-2 h-4 w-4" />
+                                        Edit
+                                    </Button>
+                                </DropdownMenuItem>
+                            </DropdownMenuGroup>
+
+                            <DropdownMenuSeparator />
+
+                            <DropdownMenuGroup>
+                                <DropdownMenuItem asChild>
+                                    <AlertDialogTrigger asChild>
+                                        <Button
+                                            variant="destructive"
+                                            className="w-full justify-start"
+                                        >
+                                            <Trash2Icon className="mr-2 h-4 w-4" />
+                                            Delete
+                                        </Button>
+                                    </AlertDialogTrigger>
+                                </DropdownMenuItem>
+                            </DropdownMenuGroup>
+                        </DropdownMenuContent>
+                    </DropdownMenu>
+                )}
+            </TooltipProvider>
 
             <AlertDialogContent>
                 <AlertDialogHeader>

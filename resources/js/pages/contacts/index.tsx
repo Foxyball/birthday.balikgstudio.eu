@@ -49,6 +49,7 @@ interface Contact {
     image_url?: string | null;
     created_at: string;
     updated_at?: string | null;
+    is_locked?: boolean;
 }
 
 interface Filters {
@@ -427,7 +428,7 @@ export default function ContactsIndex() {
                                         <Switch
                                             checked={contact.status}
                                             onCheckedChange={() => handleToggleStatus(contact)}
-                                            disabled={togglingIds.has(contact.id)}
+                                            disabled={togglingIds.has(contact.id) || contact.is_locked}
                                             aria-label={contact.status ? 'Deactivate contact' : 'Activate contact'}
                                         />
                                     </TableCell>
