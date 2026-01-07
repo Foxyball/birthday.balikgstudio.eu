@@ -94,4 +94,63 @@ class SubscriptionController extends Controller
         return Inertia::render('subscriptions/cancel');
     }
 
+    public function manage()
+    {
+        $user = Auth::user();
+        $subscription = $user->subscription('default');
+
+        $subscriptionData = null;
+
+        if ($subscription) {
+            $stripeSubscription = $subscription->asStripeSubscription();
+            
+            $subscriptionData = [
+                'name' => $subscription->name,
+                'stripe_status' => $subscription->stripe_status,
+                'stripe_price' => $subscription->stripe_price,
+                'quantity' => $subscription->quantity,
+                'ends_at' => $subscription->ends_at?->toISOString(),
+                'current_period_end' => $stripeSubscription->current_period_end 
+                    ? \Carbon\Carbon::createFromTimestamp($stripeSubscription->current_period_end)->toISOString() 
+                    : null,
+                'trial_ends_at' => $subscription->trial_ends_at?->toISOString(),
+                'on_grace_period' => $subscription->onGracePeriod(),
+                'canceled' => $subscription->canceled(),
+                'active' => $subscription->active(),
+            ];
+        }
+
+        return Inertia::render('settings/subscription', [
+            'subscription' => $subscriptionData,
+        ]);
+    }
+
+    public function cancel(Request $request)
+    {
+        $user = $request->user();
+        $subscription = $user->subscription('default');
+
+        if (!$subscription || !$subscription->active()) {
+            return back()->withErrors(['subscription' => 'No active subscription found.']);
+        }
+
+        $subscription->cancel();
+
+        return back()->with('success', 'Your subscription has been canceled. You can continue using Pro features until the end of your billing period.');
+    }
+
+    public function resume(Request $request)
+    {
+        $user = $request->user();
+        $subscription = $user->subscription('default');
+
+        if (!$subscription || !$subscription->onGracePeriod()) {
+            return back()->withErrors(['subscription' => 'No canceled subscription to resume.']);
+        }
+
+        $subscription->resume();
+
+        return back()->with('success', 'Your subscription has been resumed successfully!');
+    }
+
 }

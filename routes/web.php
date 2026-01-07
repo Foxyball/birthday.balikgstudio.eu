@@ -48,6 +48,8 @@ Route::middleware(['auth','verified'])->group(function () {
         Route::post('/create-checkout-session', [SubscriptionController::class, 'createCheckoutSession'])->name('create-checkout-session');
         Route::get('/checkout/success', [SubscriptionController::class,'stripeCheckoutSuccess'])->name('checkout-success');
         Route::get('/checkout/cancel', [SubscriptionController::class,'stripeCheckoutCancel'])->name('checkout-cancel');
+        Route::post('/cancel', [SubscriptionController::class, 'cancel'])->name('subscription.cancel');
+        Route::post('/resume', [SubscriptionController::class, 'resume'])->name('subscription.resume');
     });
 });
 

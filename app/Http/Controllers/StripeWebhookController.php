@@ -91,6 +91,11 @@ class StripeWebhookController extends WebhookController
             return;
         }
 
+        // Admins have unlimited contacts
+        if ($user->role === 1) {
+            return;
+        }
+
         // If user has more than 20 contacts, lock the newest ones (by ID desc)
         $totalContacts = $user->contacts()->count();
         
