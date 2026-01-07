@@ -4,6 +4,7 @@ use App\Http\Controllers\BirthdayShareController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\ContactController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\StripeWebhookController;
 use App\Http\Controllers\SubscriptionController;
 use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
@@ -13,7 +14,10 @@ Route::get('/', function () {
     return redirect()->route('login');
 })->name('home');
 
-// Public birthday page (no auth required)
+// Stripe webhook
+Route::post('stripe/webhook', [StripeWebhookController::class, 'handleWebhook'])->name('cashier.webhook');
+
+// Public birthday page
 Route::get('birthday/{token}', [BirthdayShareController::class, 'show'])->name('birthday.public');
 
 Route::middleware(['auth', 'verified'])->group(function () {

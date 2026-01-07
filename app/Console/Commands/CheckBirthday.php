@@ -34,6 +34,7 @@ class CheckBirthday extends Command
 
         $contacts = Contact::query()
             ->where('status', true)
+            ->where('is_locked', false)
             ->whereMonth('birthday', $today->month)
             ->whereDay('birthday', $today->day)
             ->get();
