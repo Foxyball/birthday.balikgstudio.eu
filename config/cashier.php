@@ -124,4 +124,8 @@ return [
 
     'logger' => env('CASHIER_LOGGER'),
 
+    'prices' => [
+    'stripe_price_monthly' => env('STRIPE_PRICE_MONTHLY'),
+    'stripe_price_yearly' => env('STRIPE_PRICE_YEARLY'),
+    ]
 ];

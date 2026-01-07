@@ -4,6 +4,7 @@ use App\Http\Controllers\BirthdayShareController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\ContactController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\SubscriptionController;
 use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
 use Laravel\Fortify\Features;
@@ -35,6 +36,16 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('contacts-import/template', [ContactController::class, 'importTemplate'])->name('contacts.import.template');
     Route::post('contacts-import', [ContactController::class, 'import'])->name('contacts.import');
     Route::get('contacts-export', [ContactController::class, 'export'])->name('contacts.export');
+});
+
+Route::middleware(['auth','verified'])->group(function () {
+    Route::prefix('subscription')->group(function () {
+        Route::get('/plans', [SubscriptionController::class, 'index'])->name('subscription.index');
+        Route::post('/create-checkout-session', [SubscriptionController::class, 'createCheckoutSession'])->name('create-checkout-session');
+        Route::get('/checkout/success', [SubscriptionController::class,'stripeCheckoutSuccess'])->name('checkout-success');
+        Route::get('/checkout/cancel', [SubscriptionController::class,'stripeCheckoutCancel'])->name('checkout-cancel');
+        Route::post('/stripe/webhook', [SubscriptionController::class,'handleStripeWebhook'])->name('stripe-webhook');
+    });
 });
 
 require __DIR__ . '/settings.php';
