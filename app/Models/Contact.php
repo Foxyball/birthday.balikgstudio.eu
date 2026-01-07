@@ -19,6 +19,8 @@ class Contact extends Model
         'image',
         'notes',
         'gift_ideas',
+        'is_locked',
+        'locked_at',
     ];
 
     protected $appends = ['image_url'];
@@ -27,6 +29,8 @@ class Contact extends Model
     {
         return [
             'status' => 'boolean',
+            'is_locked' => 'boolean',
+            'locked_at' => 'datetime',
         ];
     }
 

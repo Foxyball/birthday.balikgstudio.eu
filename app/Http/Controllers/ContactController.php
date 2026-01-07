@@ -43,6 +43,8 @@ class ContactController extends Controller
             ->paginate(20)
             ->withQueryString();
 
+        $user = Auth::user();
+
         return Inertia::render('contacts/index', [
             'contacts' => $contacts,
             'filters' => [
@@ -50,6 +52,7 @@ class ContactController extends Controller
                 'sort' => $sortField,
                 'direction' => $sortDirection,
             ],
+            'canAddContact' => $user->subscribed('default') || $user->contacts()->count() < 20,
         ]);
     }
 
@@ -70,6 +73,14 @@ class ContactController extends Controller
      */
     public function store(StoreContactsRequest $request)
     {
+        // Check if user can add more contacts
+        $user = Auth::user();
+        if (!$user->subscribed('default') && $user->contacts()->count() >= 20) {
+            return back()->withErrors([
+                'limit' => 'You have reached the free plan limit of 20 contacts. Please subscribe to add more contacts.'
+            ]);
+        }
+
         $imagePath = null;
         if ($request->hasFile('image')) {
             $imagePath = ImageHelper::store($request->file('image'));
