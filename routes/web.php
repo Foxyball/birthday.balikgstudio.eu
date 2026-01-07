@@ -44,7 +44,6 @@ Route::middleware(['auth','verified'])->group(function () {
         Route::post('/create-checkout-session', [SubscriptionController::class, 'createCheckoutSession'])->name('create-checkout-session');
         Route::get('/checkout/success', [SubscriptionController::class,'stripeCheckoutSuccess'])->name('checkout-success');
         Route::get('/checkout/cancel', [SubscriptionController::class,'stripeCheckoutCancel'])->name('checkout-cancel');
-        Route::post('/stripe/webhook', [SubscriptionController::class,'handleStripeWebhook'])->name('stripe-webhook');
     });
 });
 
