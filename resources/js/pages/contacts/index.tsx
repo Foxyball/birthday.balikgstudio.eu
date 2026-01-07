@@ -61,7 +61,7 @@ interface Filters {
 interface Props extends SharedData {
     contacts: PaginatedResponse<Contact>;
     filters: Filters;
-    canAddContact: boolean;
+    canAddContact?: boolean;
 }
 
 const breadcrumbs: BreadcrumbItem[] = [
@@ -94,7 +94,15 @@ const SortIcon = ({
 };
 
 export default function ContactsIndex() {
-    const { contacts, filters, canAddContact, auth } = usePage<Props>().props;
+    const { contacts, filters, auth } = usePage<Props>().props;
+
+    // Calculate canAddContact dynamically based on current subscription status
+    const canAddContact = React.useMemo(() => {
+        if (!auth.user) return false;
+        if (auth.user.role === 1) return true; // Admin
+        if (auth.user.subscribed) return true; // Subscribed
+        return contacts.total < 20; // Free tier limit
+    }, [auth.user, contacts.total]);
 
     const [search, setSearch] = React.useState(filters.search || '');
     const [sortField, setSortField] = React.useState(filters.sort || 'created_at');
