@@ -52,7 +52,7 @@ class ContactController extends Controller
                 'sort' => $sortField,
                 'direction' => $sortDirection,
             ],
-            'canAddContact' => $user->subscribed('default') || $user->contacts()->count() < 20,
+            'canAddContact' => $user->role === 1 || $user->subscribed('default') || $user->contacts()->count() < 20,
         ]);
     }
 
@@ -73,9 +73,9 @@ class ContactController extends Controller
      */
     public function store(StoreContactsRequest $request)
     {
-        // Check if user can add more contacts
+        // Check if user can add more contacts (admins have unlimited)
         $user = Auth::user();
-        if (!$user->subscribed('default') && $user->contacts()->count() >= 20) {
+        if ($user->role !== 1 && !$user->subscribed('default') && $user->contacts()->count() >= 20) {
             return back()->withErrors([
                 'limit' => 'You have reached the free plan limit of 20 contacts. Please subscribe to add more contacts.'
             ]);

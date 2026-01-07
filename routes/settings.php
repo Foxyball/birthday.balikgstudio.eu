@@ -3,6 +3,7 @@
 use App\Http\Controllers\Settings\PasswordController;
 use App\Http\Controllers\Settings\ProfileController;
 use App\Http\Controllers\Settings\TwoFactorAuthenticationController;
+use App\Http\Controllers\SubscriptionController;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -34,4 +35,6 @@ Route::middleware('auth')->group(function () {
             'shareToken' => $user->share_token,
         ]);
     })->name('sharing.edit');
+
+    Route::get('settings/subscription', [SubscriptionController::class, 'manage'])->name('subscription.manage');
 });

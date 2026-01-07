@@ -110,7 +110,7 @@ export default function SubscriptionPlans() {
                             <ul className="space-y-3">
                                 <li className="flex items-center gap-2">
                                     <Check className="h-5 w-5 text-green-600" />
-                                    <span>Unlimited contacts</span>
+                                    <span>20 contacts limit</span>
                                 </li>
                                 <li className="flex items-center gap-2">
                                     <Check className="h-5 w-5 text-green-600" />
@@ -197,10 +197,6 @@ export default function SubscriptionPlans() {
                                 <li className="flex items-center gap-2">
                                     <Check className="h-5 w-5 text-green-600" />
                                     <span>Cancel anytime</span>
-                                </li>
-                                <li className="flex items-center gap-2">
-                                    <Check className="h-5 w-5 text-green-600" />
-                                    <span className="font-semibold">2 months free!</span>
                                 </li>
                             </ul>
                         </CardContent>
