@@ -15,27 +15,27 @@ class SubscriptionController extends Controller
 
     public function createCheckoutSession(Request $request)
     {
-
         $request->validate([
             'price_id' => ['required', 'string'],
         ]);
 
-        $allowedPriceIds = [
+        $allowedPriceIds = array_filter([
             config('cashier.prices.stripe_price_monthly'),
             config('cashier.prices.stripe_price_yearly'),
-        ];
+        ]);
 
-        if (! in_array($request->price_id, $allowedPriceIds)) {
+        if (! in_array($request->price_id, $allowedPriceIds, true)) {
             return response()->json(['error' => 'Invalid price ID'], 400);
         }
 
-         return $request->user()
-        ->newSubscription('default', '' . $request->price_id)
-        ->checkout([
-            'success_url' => route('checkout-success'),
-            'cancel_url' => route('checkout-cancel'),
-        ]);
+        $session = $request->user()
+            ->newSubscription('default', $request->price_id)
+            ->checkout([
+                'success_url' => route('checkout-success'),
+                'cancel_url' => route('checkout-cancel'),
+            ]);
 
+        return response()->json($session);
     }
 
     public function stripeCheckoutSuccess()
