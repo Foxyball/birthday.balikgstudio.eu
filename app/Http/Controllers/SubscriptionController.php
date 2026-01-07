@@ -48,8 +48,4 @@ class SubscriptionController extends Controller
         return Inertia::render('subscriptions/cancel');
     }
 
-    public function handleStripeWebhook()
-    {
-        return;
-    }
 }
