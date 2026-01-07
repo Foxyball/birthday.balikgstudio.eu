@@ -25,7 +25,7 @@ import { BreadcrumbItem, PaginatedResponse, type SharedData } from '@/types';
 import { Head, router, usePage } from '@inertiajs/react';
 import React from 'react';
 import { useClipboard } from '@/hooks/use-clipboard';
-import { Copy, Check, Plus, Download, Printer, X, SearchIcon, ArrowUpIcon, ArrowDownIcon } from 'lucide-react';
+import { Copy, Check, Plus, Download, Printer, X, SearchIcon, ArrowUpIcon, ArrowDownIcon, Sparkles } from 'lucide-react';
 import { toast } from 'sonner';
 import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip';
 import {
@@ -92,7 +92,7 @@ const SortIcon = ({
 };
 
 export default function ContactsIndex() {
-    const { contacts, filters } = usePage<Props>().props;
+    const { contacts, filters, auth } = usePage<Props>().props;
 
     const [search, setSearch] = React.useState(filters.search || '');
     const [sortField, setSortField] = React.useState(filters.sort || 'created_at');
@@ -236,6 +236,16 @@ export default function ContactsIndex() {
                 <div className="flex items-center justify-between">
                     <h1 className="text-xl font-semibold">Contacts</h1>
                     <div className="flex items-center gap-2">
+                        {!auth.user?.subscribed && (
+                            <Button 
+                                onClick={() => router.get(route('subscription.index'))}
+                                variant="default"
+                                className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700"
+                            >
+                                <Sparkles className="size-4" />
+                                Upgrade to Pro
+                            </Button>
+                        )}
                         <Button onClick={() => router.get(contactsRoutes.create().url)}>
                             <Plus className="size-4" />
                             New Contact

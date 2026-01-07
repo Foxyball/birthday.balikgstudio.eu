@@ -43,7 +43,10 @@ class HandleInertiaRequests extends Middleware
             'name' => config('app.name'),
             'quote' => ['message' => trim($message), 'author' => trim($author)],
             'auth' => [
-                'user' => $request->user(),
+                'user' => $request->user() ? array_merge(
+                    $request->user()->toArray(),
+                    ['subscribed' => $request->user()->subscribed('default')]
+                ) : null,
             ],
             // Share server flash messages so the client can display them (e.g. via Alerts)
             'flash' => [

@@ -10,9 +10,11 @@ import InputError from '@/components/input-error';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Badge } from '@/components/ui/badge';
 import AppLayout from '@/layouts/app-layout';
 import SettingsLayout from '@/layouts/settings/layout';
 import { edit } from '@/routes/profile';
+import { Crown } from 'lucide-react';
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
@@ -36,10 +38,18 @@ export default function Profile({
 
             <SettingsLayout>
                 <div className="space-y-6">
-                    <HeadingSmall
-                        title="Profile information"
-                        description="Update your name and email address"
-                    />
+                    <div className="flex items-center justify-between">
+                        <HeadingSmall
+                            title="Profile information"
+                            description="Update your name and email address"
+                        />
+                        {auth.user?.subscribed && (
+                            <Badge variant="default" className="gap-1 bg-gradient-to-r from-purple-600 to-blue-600">
+                                <Crown className="h-3 w-3" />
+                                Pro Member
+                            </Badge>
+                        )}
+                    </div>
 
                     <Form
                         {...ProfileController.update.form()}
