@@ -4,6 +4,7 @@ use App\Http\Controllers\BirthdayShareController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\ContactController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\SocialAuthLoginController;
 use App\Http\Controllers\StripeWebhookController;
 use App\Http\Controllers\SubscriptionController;
 use App\Http\Controllers\UserController;
@@ -52,5 +53,9 @@ Route::middleware(['auth','verified'])->group(function () {
         Route::post('/resume', [SubscriptionController::class, 'resume'])->name('subscription.resume');
     });
 });
+
+// Socialite routes
+Route::get('/auth/google/redirect', [SocialAuthLoginController::class, 'redirectToGoogle'])->name('google.redirect');
+Route::get('/auth/google/callback', [SocialAuthLoginController::class, 'handleGoogleCallback'])->name('google.callback');
 
 require __DIR__ . '/settings.php';
