@@ -7,6 +7,9 @@ use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Http\Middleware\AddLinkHeadersForPreloadedAssets;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
+use Symfony\Component\HttpKernel\Exception\ServiceUnavailableHttpException;
+use Inertia\Inertia;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -36,5 +39,15 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
-        //
+        $exceptions->render(function (NotFoundHttpException $e, $request) {
+            return Inertia::render('errors/404')
+                ->toResponse($request)
+                ->setStatusCode(404);
+        });
+
+        $exceptions->render(function (ServiceUnavailableHttpException $e, $request) {
+            return Inertia::render('errors/503')
+                ->toResponse($request)
+                ->setStatusCode(503);
+        });
     })->create();
