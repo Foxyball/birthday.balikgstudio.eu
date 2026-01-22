@@ -30,6 +30,72 @@
             html.dark {
                 background-color: oklch(0.145 0 0);
             }
+
+            /* Global Preloader Styles */
+            #app-preloader {
+                position: fixed;
+                inset: 0;
+                z-index: 9999;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                background-color: oklch(1 0 0);
+                transition: opacity 0.3s ease-out, visibility 0.3s ease-out;
+            }
+
+            html.dark #app-preloader {
+                background-color: oklch(0.145 0 0);
+            }
+
+            #app-preloader.hidden {
+                opacity: 0;
+                visibility: hidden;
+            }
+
+            .preloader-spinner {
+                width: 48px;
+                height: 48px;
+                border: 3px solid transparent;
+                border-top-color: oklch(0.6 0.2 260);
+                border-radius: 50%;
+                animation: spin 0.8s linear infinite;
+            }
+
+            html.dark .preloader-spinner {
+                border-top-color: oklch(0.7 0.15 260);
+            }
+
+            .preloader-content {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                gap: 16px;
+            }
+
+            .preloader-logo {
+                width: 64px;
+                height: 64px;
+                animation: pulse 1.5s ease-in-out infinite;
+            }
+
+            .preloader-text {
+                font-family: 'Ubuntu', system-ui, sans-serif;
+                font-size: 14px;
+                color: oklch(0.5 0 0);
+            }
+
+            html.dark .preloader-text {
+                color: oklch(0.6 0 0);
+            }
+
+            @keyframes spin {
+                to { transform: rotate(360deg); }
+            }
+
+            @keyframes pulse {
+                0%, 100% { opacity: 1; transform: scale(1); }
+                50% { opacity: 0.7; transform: scale(0.95); }
+            }
         </style>
 
         <title inertia>{{ config('app.name', 'Laravel') }}</title>
@@ -46,6 +112,14 @@
         @inertiaHead
     </head>
     <body class="font-sans antialiased">
+        {{-- Global Preloader --}}
+        <div id="app-preloader">
+            <div class="preloader-content">
+                <img src="/images/logo.png" alt="Loading..." class="preloader-logo" />
+                <div class="preloader-spinner"></div>
+            </div>
+        </div>
+
         @inertia
     </body>
 </html>
