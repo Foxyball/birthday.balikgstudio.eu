@@ -11,7 +11,7 @@ import {
 } from '@/components/ui/sidebar';
 import { dashboard } from '@/routes';
 import { type NavItem } from '@/types';
-import { Link, usePage } from '@inertiajs/react';
+import {usePage } from '@inertiajs/react';
 import { Folder, LayoutGrid, User, Upload } from 'lucide-react';
 import { useState } from 'react';
 import AppLogo from './app-logo';
@@ -60,11 +60,9 @@ export function AppSidebar() {
                 <SidebarHeader>
                     <SidebarMenu>
                         <SidebarMenuItem>
-                            <SidebarMenuButton size="lg" asChild>
-                                <Link href={dashboard()} prefetch>
-                                    <AppLogo />
-                                </Link>
-                            </SidebarMenuButton>
+                            <div className="flex w-full items-center gap-3 p-4">
+                                <AppLogo />
+                            </div>
                         </SidebarMenuItem>
                     </SidebarMenu>
                 </SidebarHeader>
