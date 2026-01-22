@@ -9,7 +9,6 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select';
-import { Switch } from '@/components/ui/switch';
 import {
     Table,
     TableBody,
@@ -36,7 +35,6 @@ import {
     DialogHeader,
     DialogTitle,
 } from '@/components/ui/dialog';
-import ContactActions from '@/components/contacts/ContactActions';
 
 interface Filters {
     search: string;
@@ -394,8 +392,6 @@ export default function ContactsIndex() {
                             >
                                 Birthday <SortIcon field="birthday" sortField={sortField} sortDirection={sortDirection} />
                             </TableHead>
-                            <TableHead>Active</TableHead>
-                            <TableHead className="text-right">Action</TableHead>
                         </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -453,17 +449,6 @@ export default function ContactsIndex() {
                                         )}
                                     </TableCell>
                                     <TableCell>{formatBirthday(contact.birthday)}</TableCell>
-                                    <TableCell onClick={(e) => e.stopPropagation()}>
-                                        <Switch
-                                            checked={contact.status}
-                                            onCheckedChange={() => handleToggleStatus(contact)}
-                                            disabled={togglingIds.has(contact.id) || contact.is_locked}
-                                            aria-label={contact.status ? 'Deactivate contact' : 'Activate contact'}
-                                        />
-                                    </TableCell>
-                                    <TableCell className="text-right" onClick={(e) => e.stopPropagation()}>
-                                        <ContactActions contact={contact} onDelete={handleDelete} />
-                                    </TableCell>
                                 </TableRow>
                             ))
                         ) : (
