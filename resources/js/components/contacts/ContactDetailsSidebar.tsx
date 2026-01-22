@@ -24,7 +24,8 @@ import {
     AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
 import { Spinner } from '@/components/ui/spinner';
-import { CalendarIcon, MailIcon, PhoneIcon, TagIcon, ClockIcon, GiftIcon, StickyNoteIcon, EditIcon, Trash2Icon } from 'lucide-react';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { CalendarIcon, MailIcon, PhoneIcon, TagIcon, ClockIcon, GiftIcon, StickyNoteIcon, EditIcon, Trash2Icon, Lock } from 'lucide-react';
 import { useState } from 'react';
 import { router } from '@inertiajs/react';
 import contacts from '@/routes/contacts';
@@ -283,7 +284,18 @@ export default function ContactDetailsSidebar({
                 </div>
 
                 {/* Action Buttons */}
-                {!contact.is_locked && (
+                {contact.is_locked ? (
+                    <SheetFooter className="mt-6">
+                        <Alert variant="destructive" className="w-full">
+                            <Lock className="h-4 w-4" />
+                            <AlertDescription>
+                                <span className="font-semibold">This contact is locked.</span>
+                                <br />
+                                <span className="text-xs">Subscribe to Pro to unlock and manage this contact.</span>
+                            </AlertDescription>
+                        </Alert>
+                    </SheetFooter>
+                ) : (
                     <SheetFooter className="mt-6 flex-row gap-2">
                         <Button
                             variant="outline"
