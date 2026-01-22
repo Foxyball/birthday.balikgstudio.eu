@@ -1,4 +1,4 @@
-import ContactActions from '@/components/contacts/ContactActions';
+import ContactDetailsSidebar, { Contact } from '@/components/contacts/ContactDetailsSidebar';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Input } from '@/components/ui/input';
@@ -36,21 +36,7 @@ import {
     DialogHeader,
     DialogTitle,
 } from '@/components/ui/dialog';
-
-interface Contact {
-    id: number;
-    name: string;
-    email: string;
-    phone?: string | null;
-    birthday?: string;
-    category_id?: number;
-    status: boolean;
-    image?: string | null;
-    image_url?: string | null;
-    created_at: string;
-    updated_at?: string | null;
-    is_locked?: boolean;
-}
+import ContactActions from '@/components/contacts/ContactActions';
 
 interface Filters {
     search: string;
@@ -115,6 +101,15 @@ export default function ContactsIndex() {
     );
     const [togglingIds, setTogglingIds] = React.useState<Set<number>>(new Set());
 
+    // Sidebar state for contact details
+    const [selectedContact, setSelectedContact] = React.useState<Contact | null>(null);
+    const [isSidebarOpen, setIsSidebarOpen] = React.useState(false);
+
+    const handleRowClick = (contact: Contact) => {
+        setSelectedContact(contact);
+        setIsSidebarOpen(true);
+    };
+
     React.useEffect(() => {
         setLocalContacts(contacts.data ?? []);
     }, [contacts.data]);
@@ -159,6 +154,11 @@ export default function ContactsIndex() {
             )
         );
 
+        // Also update selectedContact if it's the same contact
+        if (selectedContact?.id === contact.id) {
+            setSelectedContact({ ...contact, status: !contact.status });
+        }
+
         try {
             const response = await fetch(route('contacts.toggle-status', contact.id), {
                 method: 'PATCH',
@@ -179,6 +179,10 @@ export default function ContactsIndex() {
                         c.id === contact.id ? { ...c, status: contact.status } : c
                     )
                 );
+                // Revert selectedContact too
+                if (selectedContact?.id === contact.id) {
+                    setSelectedContact(contact);
+                }
                 toast.error('Failed to update contact status');
             }
         } catch {
@@ -188,6 +192,10 @@ export default function ContactsIndex() {
                     c.id === contact.id ? { ...c, status: contact.status } : c
                 )
             );
+            // Revert selectedContact too
+            if (selectedContact?.id === contact.id) {
+                setSelectedContact(contact);
+            }
             toast.error('Failed to update contact status');
         } finally {
             setTogglingIds((prev) => {
@@ -214,6 +222,12 @@ export default function ContactsIndex() {
     const handleDelete = (contactToDelete: Contact) => {
         const previous = localContacts;
         setLocalContacts((c) => c.filter((x) => x.id !== contactToDelete.id));
+
+        // Close sidebar if the deleted contact was selected
+        if (selectedContact?.id === contactToDelete.id) {
+            setIsSidebarOpen(false);
+            setSelectedContact(null);
+        }
 
         router.delete(contactsRoutes.destroy(contactToDelete.id).url, {
             onError: () => setLocalContacts(previous),
@@ -387,7 +401,11 @@ export default function ContactsIndex() {
                     <TableBody>
                         {localContacts.length > 0 ? (
                             localContacts.map((contact) => (
-                                <TableRow key={contact.id}>
+                                <TableRow 
+                                    key={contact.id}
+                                    className="cursor-pointer hover:bg-muted/50"
+                                    onClick={() => handleRowClick(contact)}
+                                >
                                     <TableCell>
                                         <div className="flex items-center gap-3">
                                             <Avatar className="size-9">
@@ -413,7 +431,10 @@ export default function ContactsIndex() {
                                                             variant="ghost"
                                                             size="icon"
                                                             aria-label="Copy phone number"
-                                                            onClick={() => handleCopyPhone(contact.phone!)}
+                                                            onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                handleCopyPhone(contact.phone!);
+                                                            }}
                                                         >
                                                             {justCopiedPhone === contact.phone ? (
                                                                 <Check className="size-4" />
@@ -432,7 +453,7 @@ export default function ContactsIndex() {
                                         )}
                                     </TableCell>
                                     <TableCell>{formatBirthday(contact.birthday)}</TableCell>
-                                    <TableCell>
+                                    <TableCell onClick={(e) => e.stopPropagation()}>
                                         <Switch
                                             checked={contact.status}
                                             onCheckedChange={() => handleToggleStatus(contact)}
@@ -440,7 +461,7 @@ export default function ContactsIndex() {
                                             aria-label={contact.status ? 'Deactivate contact' : 'Activate contact'}
                                         />
                                     </TableCell>
-                                    <TableCell className="text-right">
+                                    <TableCell className="text-right" onClick={(e) => e.stopPropagation()}>
                                         <ContactActions contact={contact} onDelete={handleDelete} />
                                     </TableCell>
                                 </TableRow>
@@ -495,6 +516,16 @@ export default function ContactsIndex() {
                     </div>
                 </DialogContent>
             </Dialog>
+
+            {/* Contact Details Sidebar */}
+            <ContactDetailsSidebar
+                contact={selectedContact}
+                open={isSidebarOpen}
+                onOpenChange={setIsSidebarOpen}
+                onToggleStatus={handleToggleStatus}
+                onDelete={handleDelete}
+                isTogglingStatus={selectedContact ? togglingIds.has(selectedContact.id) : false}
+            />
         </AppLayout>
     );
 }
