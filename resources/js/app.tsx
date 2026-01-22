@@ -8,6 +8,18 @@ import { initializeTheme } from './hooks/use-appearance';
 
 const appName = import.meta.env.VITE_APP_NAME || 'Laravel';
 
+// Hide preloader function
+const hidePreloader = () => {
+    const preloader = document.getElementById('app-preloader');
+    if (preloader) {
+        preloader.classList.add('hidden');
+        // Remove from DOM after transition
+        setTimeout(() => {
+            preloader.remove();
+        }, 300);
+    }
+};
+
 createInertiaApp({
     title: (title) => (title ? `${title} - ${appName}` : appName),
     resolve: (name) =>
@@ -23,6 +35,9 @@ createInertiaApp({
                 <App {...props} />
             </StrictMode>,
         );
+
+        // Hide preloader after React mounts
+        hidePreloader();
     },
     progress: {
         color: '#4B5563',
