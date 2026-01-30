@@ -4,12 +4,12 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { dashboard } from '@/routes';
-import * as contactRoutes from '@/routes/contacts';
 import { type BreadcrumbItem, type SharedData } from '@/types';
-import { Head, Link, usePage } from '@inertiajs/react';
-import { format } from 'date-fns';
-import { CalendarIcon, ArrowRight } from 'lucide-react';
+import { Head, usePage } from '@inertiajs/react';
+import { format, formatDistanceToNow } from 'date-fns';
+import { CalendarIcon, UserPlusIcon } from 'lucide-react';
 import QuickSearch from '@/components/dashboard/QuickSearch';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
@@ -25,6 +25,15 @@ type UpcomingBirthday = {
     nextBirthday: string; // ISO date for upcoming occurrence
     daysLeft: number;
     ageTurning: number;
+    image_url: string | null;
+};
+
+type RecentContact = {
+    id: number;
+    name: string;
+    email: string;
+    image_url: string | null;
+    created_at: string;
 };
 
 interface Props extends SharedData {
@@ -34,11 +43,22 @@ interface Props extends SharedData {
         birthdaysToday: number;
     };
     upcomingBirthdays: UpcomingBirthday[];
+    recentContacts: RecentContact[];
 }
 
 export default function Dashboard() {
-    const { kpis, upcomingBirthdays, auth } = usePage<Props>().props;
+    const { kpis, upcomingBirthdays, recentContacts, auth } = usePage<Props>().props;
     const isAdmin = String(auth?.user?.role ?? '0') === '1';
+
+    const getInitials = (name: string) => {
+        return name
+            .split(' ')
+            .map((n) => n[0])
+            .join('')
+            .toUpperCase()
+            .slice(0, 2);
+    };
+
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Dashboard" />
@@ -81,60 +101,106 @@ export default function Dashboard() {
                         </CardContent>
                     </Card>
                 </div>
-                <Card className="relative flex-1 overflow-hidden rounded-xl border border-sidebar-border/70">
-                    <CardHeader>
-                        <CardTitle className="flex items-center gap-2">
-                            <CalendarIcon className="h-5 w-5" />
-                            Upcoming Birthdays
-                        </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                        {upcomingBirthdays && upcomingBirthdays.length > 0 ? (
-                            <Table>
-                                <TableHeader>
-                                    <TableRow>
-                                        <TableHead>Name</TableHead>
-                                        <TableHead>Date</TableHead>
-                                        <TableHead>In</TableHead>
-                                        <TableHead>Turns</TableHead>
-                                        <TableHead></TableHead>
-                                    </TableRow>
-                                </TableHeader>
-                                <TableBody>
-                                    {upcomingBirthdays.map((b) => (
-                                        <TableRow key={b.id}>
-                                            <TableCell className="font-medium">{b.name}</TableCell>
-                                            <TableCell>
-                                                {format(new Date(b.nextBirthday), 'MMM d')}
-                                            </TableCell>
-                                            <TableCell>
-                                                <Badge variant="secondary">{b.daysLeft === 0 ? 'today' : `in ${b.daysLeft} day${b.daysLeft === 1 ? '' : 's'}`}</Badge>
-                                            </TableCell>
-                                            <TableCell>
-                                                <Badge> {b.ageTurning}</Badge>
-                                            </TableCell>
-                                            <TableCell className="text-right">
-                                                <Link
-                                                    href={contactRoutes.edit(b.id).url}
-                                                    className="inline-flex items-center gap-1 text-sm text-foreground underline decoration-neutral-300 underline-offset-4 transition-colors hover:decoration-current"
-                                                >
-                                                    View <ArrowRight className="h-3.5 w-3.5" />
-                                                </Link>
-                                            </TableCell>
+                {/* Main Content Grid */}
+                <div className="grid gap-6 lg:grid-cols-2">
+                    {/* Upcoming Birthdays */}
+                    <Card className="relative overflow-hidden rounded-xl border border-sidebar-border/70">
+                        <CardHeader>
+                            <CardTitle className="flex items-center gap-2">
+                                <CalendarIcon className="h-5 w-5" />
+                                Upcoming Birthdays
+                            </CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                            {upcomingBirthdays && upcomingBirthdays.length > 0 ? (
+                                <Table>
+                                    <TableHeader>
+                                        <TableRow>
+                                            <TableHead>Name</TableHead>
+                                            <TableHead>Date</TableHead>
+                                            <TableHead>In</TableHead>
+                                            <TableHead>Turns</TableHead>
                                         </TableRow>
-                                    ))}
-                                </TableBody>
-                            </Table>
-                        ) : (
-                            <div className="relative min-h-[300px]">
-                                <PlaceholderPattern className="absolute inset-0 size-full stroke-neutral-900/20 dark:stroke-neutral-100/20" />
-                                <div className="relative z-10 flex h-full items-center justify-center text-sm text-muted-foreground">
-                                    No upcoming birthdays in the next 30 days.
+                                    </TableHeader>
+                                    <TableBody>
+                                        {upcomingBirthdays.map((b) => (
+                                            <TableRow key={b.id}>
+                                                <TableCell>
+                                                    <div className="flex items-center gap-3">
+                                                        <Avatar className="h-8 w-8">
+                                                            <AvatarImage src={b.image_url ?? undefined} alt={b.name} />
+                                                            <AvatarFallback>{getInitials(b.name)}</AvatarFallback>
+                                                        </Avatar>
+                                                        <span className="font-medium">{b.name}</span>
+                                                    </div>
+                                                </TableCell>
+                                                <TableCell>
+                                                    {format(new Date(b.nextBirthday), 'MMM d')}
+                                                </TableCell>
+                                                <TableCell>
+                                                    <Badge variant="secondary">{b.daysLeft === 0 ? 'today' : `in ${b.daysLeft} day${b.daysLeft === 1 ? '' : 's'}`}</Badge>
+                                                </TableCell>
+                                                <TableCell>
+                                                    <Badge> {b.ageTurning}</Badge>
+                                                </TableCell>
+                                            </TableRow>
+                                        ))}
+                                    </TableBody>
+                                </Table>
+                            ) : (
+                                <div className="relative min-h-[300px]">
+                                    <PlaceholderPattern className="absolute inset-0 size-full stroke-neutral-900/20 dark:stroke-neutral-100/20" />
+                                    <div className="relative z-10 flex h-full items-center justify-center text-sm text-muted-foreground">
+                                        No upcoming birthdays in the next 30 days.
+                                    </div>
                                 </div>
-                            </div>
-                        )}
-                    </CardContent>
-                </Card>
+                            )}
+                        </CardContent>
+                    </Card>
+
+                    {/* Recently Added Contacts */}
+                    <Card className="relative overflow-hidden rounded-xl border border-sidebar-border/70">
+                        <CardHeader>
+                            <CardTitle className="flex items-center gap-2">
+                                <UserPlusIcon className="h-5 w-5" />
+                                Recently Added Contacts
+                            </CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                            {recentContacts && recentContacts.length > 0 ? (
+                                <div className="space-y-4">
+                                    {recentContacts.map((contact) => (
+                                        <div
+                                            key={contact.id}
+                                            className="flex items-center justify-between gap-4"
+                                        >
+                                            <div className="flex items-center gap-3">
+                                                <Avatar className="h-10 w-10">
+                                                    <AvatarImage src={contact.image_url ?? undefined} alt={contact.name} />
+                                                    <AvatarFallback>{getInitials(contact.name)}</AvatarFallback>
+                                                </Avatar>
+                                                <div className="flex flex-col">
+                                                    <span className="font-medium">{contact.name}</span>
+                                                    <span className="text-sm text-muted-foreground">{contact.email}</span>
+                                                </div>
+                                            </div>
+                                            <span className="text-xs text-muted-foreground">
+                                                {formatDistanceToNow(new Date(contact.created_at), { addSuffix: true })}
+                                            </span>
+                                        </div>
+                                    ))}
+                                </div>
+                            ) : (
+                                <div className="relative min-h-[300px]">
+                                    <PlaceholderPattern className="absolute inset-0 size-full stroke-neutral-900/20 dark:stroke-neutral-100/20" />
+                                    <div className="relative z-10 flex h-full items-center justify-center text-sm text-muted-foreground">
+                                        No contacts added yet.
+                                    </div>
+                                </div>
+                            )}
+                        </CardContent>
+                    </Card>
+                </div>
             </div>
         </AppLayout>
     );
