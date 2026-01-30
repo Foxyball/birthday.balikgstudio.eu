@@ -9,6 +9,7 @@ import { type BreadcrumbItem, type SharedData } from '@/types';
 import { Head, Link, usePage } from '@inertiajs/react';
 import { format } from 'date-fns';
 import { CalendarIcon, ArrowRight } from 'lucide-react';
+import QuickSearch from '@/components/dashboard/QuickSearch';
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
@@ -42,6 +43,12 @@ export default function Dashboard() {
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Dashboard" />
             <div className="flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4">
+                {/* Quick Search */}
+                <div className="flex items-center justify-between gap-4">
+                    <h1 className="text-xl font-semibold">Dashboard</h1>
+                    <QuickSearch />
+                </div>
+
                 <div className="grid auto-rows-min gap-4 md:grid-cols-3">
                     <Card>
                         <CardHeader>

@@ -41,6 +41,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('contacts-import/template', [ContactController::class, 'importTemplate'])->name('contacts.import.template');
     Route::post('contacts-import', [ContactController::class, 'import'])->name('contacts.import');
     Route::get('contacts-export', [ContactController::class, 'export'])->name('contacts.export');
+    Route::get('contacts-search', [ContactController::class, 'search'])->name('contacts.search');
 });
 
 Route::middleware(['auth','verified'])->group(function () {

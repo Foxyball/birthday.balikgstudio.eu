@@ -57,6 +57,40 @@ class ContactController extends Controller
     }
 
     /**
+     * Quick search contacts for autocomplete.
+     */
+    public function search(Request $request)
+    {
+        $query = $request->input('q', '');
+        
+        if (strlen($query) < 2) {
+            return response()->json([]);
+        }
+
+        $contacts = Contact::query()
+            ->where('user_id', Auth::id())
+            ->where(function ($q) use ($query) {
+                $q->where('name', 'like', "%{$query}%")
+                    ->orWhere('email', 'like', "%{$query}%")
+                    ->orWhere('phone', 'like', "%{$query}%");
+            })
+            ->select(['id', 'name', 'email', 'birthday', 'image'])
+            ->limit(8)
+            ->get()
+            ->map(function ($contact) {
+                return [
+                    'id' => $contact->id,
+                    'name' => $contact->name,
+                    'email' => $contact->email,
+                    'birthday' => $contact->birthday,
+                    'image_url' => $contact->image_url,
+                ];
+            });
+
+        return response()->json($contacts);
+    }
+
+    /**
      * Show the form for creating a new resource.
      */
     public function create()
