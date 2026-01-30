@@ -2,6 +2,12 @@
 
 namespace App\Providers;
 
+use App\Models\Category;
+use App\Models\Contact;
+use App\Models\User;
+use App\Observers\CategoryObserver;
+use App\Observers\ContactObserver;
+use App\Observers\UserObserver;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\ServiceProvider;
 use Laravel\Cashier\Cashier;
@@ -28,5 +34,10 @@ class AppServiceProvider extends ServiceProvider
 
         // Enable automatic tax calculation for Cashier
         Cashier::calculateTaxes();
+
+        // Register observers
+        Contact::observe(ContactObserver::class);
+        Category::observe(CategoryObserver::class);
+        User::observe(UserObserver::class);
     }
 }

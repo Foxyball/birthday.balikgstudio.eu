@@ -4,6 +4,7 @@ use App\Http\Controllers\BirthdayShareController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\ContactController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\SocialAuthLoginController;
 use App\Http\Controllers\StripeWebhookController;
 use App\Http\Controllers\SubscriptionController;
@@ -27,6 +28,16 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // Birthday sharing settings
     Route::post('birthday-share/toggle', [BirthdayShareController::class, 'toggle'])->name('birthday-share.toggle');
     Route::post('birthday-share/regenerate', [BirthdayShareController::class, 'regenerateToken'])->name('birthday-share.regenerate');
+
+    // Notifications
+    Route::prefix('notifications')->group(function () {
+        Route::get('/', [NotificationController::class, 'index'])->name('notifications.index');
+        Route::get('/unread-count', [NotificationController::class, 'unreadCount'])->name('notifications.unread-count');
+        Route::post('/{notification}/read', [NotificationController::class, 'markAsRead'])->name('notifications.mark-as-read');
+        Route::post('/mark-all-read', [NotificationController::class, 'markAllAsRead'])->name('notifications.mark-all-read');
+        Route::delete('/{notification}', [NotificationController::class, 'destroy'])->name('notifications.destroy');
+        Route::delete('/clear/read', [NotificationController::class, 'clearRead'])->name('notifications.clear-read');
+    });
 });
 
 Route::middleware(['auth', 'verified', 'admin'])->group(function () {
