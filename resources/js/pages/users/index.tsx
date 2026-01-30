@@ -1,4 +1,5 @@
 import UserActions from '@/components/users/UserActions';
+import UserDetailsSidebar from '@/components/users/UserDetailsSidebar';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
@@ -79,10 +80,27 @@ export default function UsersIndex({ users, filters }: Props) {
     );
     const [localUsers, setLocalUsers] = React.useState(users.data);
     const [togglingIds, setTogglingIds] = React.useState<Set<number>>(new Set());
+    const [selectedUser, setSelectedUser] = React.useState<User | null>(null);
+    const [isSidebarOpen, setIsSidebarOpen] = React.useState(false);
 
     React.useEffect(() => {
         setLocalUsers(users.data);
     }, [users.data]);
+
+    // Update selected user when localUsers changes
+    React.useEffect(() => {
+        if (selectedUser) {
+            const updated = localUsers.find((u) => u.id === selectedUser.id);
+            if (updated) {
+                setSelectedUser(updated);
+            }
+        }
+    }, [localUsers, selectedUser]);
+
+    const handleRowClick = (user: User) => {
+        setSelectedUser(user);
+        setIsSidebarOpen(true);
+    };
 
     const handleToggleLock = async (user: User) => {
         setTogglingIds((prev) => new Set(prev).add(user.id));
@@ -280,7 +298,11 @@ export default function UsersIndex({ users, filters }: Props) {
                     <TableBody>
                         {localUsers.length > 0 ? (
                             localUsers.map((user) => (
-                                <TableRow key={user.id}>
+                                <TableRow
+                                    key={user.id}
+                                    className="cursor-pointer hover:bg-muted/50"
+                                    onClick={() => handleRowClick(user)}
+                                >
                                     <TableCell>
                                         <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary text-primary-foreground font-semibold">
                                             {getInitials(user.name)}
@@ -301,7 +323,7 @@ export default function UsersIndex({ users, filters }: Props) {
                                             {Number(user.role) === 1 ? 'Admin' : 'User'}
                                         </span>
                                     </TableCell>
-                                    <TableCell>
+                                    <TableCell onClick={(e) => e.stopPropagation()}>
                                         <Switch
                                             checked={user.is_locked}
                                             onCheckedChange={() => handleToggleLock(user)}
@@ -312,7 +334,10 @@ export default function UsersIndex({ users, filters }: Props) {
                                     <TableCell>
                                         {formatDate(user.created_at)}
                                     </TableCell>
-                                    <TableCell className="text-right">
+                                    <TableCell
+                                        className="text-right"
+                                        onClick={(e) => e.stopPropagation()}
+                                    >
                                         <UserActions user={user} />
                                     </TableCell>
                                 </TableRow>
@@ -351,6 +376,14 @@ export default function UsersIndex({ users, filters }: Props) {
                     </div>
                 </div>
             </div>
+
+            <UserDetailsSidebar
+                user={selectedUser}
+                open={isSidebarOpen}
+                onOpenChange={setIsSidebarOpen}
+                onToggleLock={handleToggleLock}
+                isTogglingLock={selectedUser ? togglingIds.has(selectedUser.id) : false}
+            />
         </AppLayout>
     );
 }
