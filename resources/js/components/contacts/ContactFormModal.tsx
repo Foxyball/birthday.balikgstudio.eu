@@ -210,8 +210,13 @@ export default function ContactFormModal({
                 setUploadProgress(null);
             },
             onError: (errors) => {
+                const fieldMap: Record<string, keyof typeof data> = {
+                    contactName: 'name',
+                    categoryID: 'category_id',
+                };
                 Object.entries(errors).forEach(([key, value]) => {
-                    setError(key as keyof typeof data, value as string);
+                    const mappedKey = fieldMap[key] || key;
+                    setError(mappedKey as keyof typeof data, value as string);
                 });
             },
         });

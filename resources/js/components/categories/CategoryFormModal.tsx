@@ -36,7 +36,10 @@ export default function CategoryFormModal({
 }: CategoryFormModalProps) {
     const isEditing = !!category;
 
-    const { data, setData, post, put, processing, errors, reset, clearErrors, transform } = useForm({
+    const { data, setData, post, put, processing, errors, reset, clearErrors, transform } = useForm<{
+        name: string;
+        catName?: string;
+    }>({
         name: category?.name ?? '',
     });
 
@@ -73,7 +76,7 @@ export default function CategoryFormModal({
         }
     };
 
-    
+
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
             <DialogContent className="sm:max-w-md">
@@ -98,14 +101,14 @@ export default function CategoryFormModal({
                             placeholder="Enter category name"
                             value={data.name}
                             onChange={(e) => setData('name', e.target.value)}
-                            className={errors.name ? 'border-destructive' : ''}
-                            aria-invalid={!!errors.name}
-                            aria-describedby={errors.name ? 'name-error' : undefined}
+                            className={(errors.name || errors.catName) ? 'border-destructive' : ''}
+                            aria-invalid={!!(errors.name || errors.catName)}
+                            aria-describedby={(errors.name || errors.catName) ? 'name-error' : undefined}
                             autoFocus
                         />
-                        {errors.name && (
+                        {(errors.name || errors.catName) && (
                             <p id="name-error" className="text-sm text-destructive">
-                                {errors.name}
+                                {errors.name || errors.catName}
                             </p>
                         )}
                     </div>
