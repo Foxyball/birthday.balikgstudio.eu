@@ -24,7 +24,7 @@ class DashboardController extends Controller
         // Upcoming birthdays for the authenticated user (next 30 days)
         $contacts = Contact::query()
             ->where('user_id', Auth::id())
-            ->get(['id', 'name', 'birthday']);
+            ->get(['id', 'name', 'birthday', 'image']);
 
         $upcomingBirthdays = $contacts
             ->map(function ($contact) use ($today) {
@@ -52,12 +52,29 @@ class DashboardController extends Controller
                     'nextBirthday' => $next->toDateString(),
                     'daysLeft' => $daysLeft,
                     'ageTurning' => $ageTurning,
+                    'image_url' => $contact->image_url,
                 ];
             })
             ->filter(fn ($b) => $b['daysLeft'] >= 0 && $b['daysLeft'] <= 30)
             ->sortBy('daysLeft')
             ->values()
             ->take(10);
+
+        // Recently added contacts (last 5)
+        $recentContacts = Contact::query()
+            ->where('user_id', Auth::id())
+            ->orderBy('created_at', 'desc')
+            ->take(5)
+            ->get(['id', 'name', 'email', 'image', 'created_at'])
+            ->map(function ($contact) {
+                return [
+                    'id' => $contact->id,
+                    'name' => $contact->name,
+                    'email' => $contact->email,
+                    'image_url' => $contact->image_url,
+                    'created_at' => $contact->created_at->toIso8601String(),
+                ];
+            });
 
         return Inertia::render('dashboard', [
             'kpis' => [
@@ -66,6 +83,7 @@ class DashboardController extends Controller
                 'birthdaysToday' => $birthdaysToday,
             ],
             'upcomingBirthdays' => $upcomingBirthdays,
+            'recentContacts' => $recentContacts,
         ]);
     }
 }
