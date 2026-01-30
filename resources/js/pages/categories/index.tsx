@@ -1,4 +1,5 @@
 import CategoryActions from '@/components/categories/CategoryActions';
+import CategoryDetailsSidebar, { Category } from '@/components/categories/CategoryDetailsSidebar';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
@@ -24,13 +25,6 @@ import { Head, router, usePage } from '@inertiajs/react';
 import { ArrowDownIcon, ArrowUpIcon, SearchIcon } from 'lucide-react';
 import React from 'react';
 import { route } from 'ziggy-js';
-
-interface Category {
-    id: number;
-    name: string;
-    created_at: string;
-    updated_at?: string | null;
-}
 
 interface Filters {
     search: string;
@@ -88,6 +82,15 @@ export default function CategoriesIndex() {
         categories.data ?? ([] as Category[]),
     );
 
+    // Sidebar state for category details
+    const [selectedCategory, setSelectedCategory] = React.useState<Category | null>(null);
+    const [isSidebarOpen, setIsSidebarOpen] = React.useState(false);
+
+    const handleRowClick = (category: Category) => {
+        setSelectedCategory(category);
+        setIsSidebarOpen(true);
+    };
+
     React.useEffect(() => {
         setLocalCategories(categories.data ?? []);
     }, [categories.data]);
@@ -127,6 +130,12 @@ export default function CategoriesIndex() {
         setLocalCategories((c) =>
             c.filter((x) => x.id !== categoryToDelete.id),
         );
+
+        // Close sidebar if the deleted category was selected
+        if (selectedCategory?.id === categoryToDelete.id) {
+            setIsSidebarOpen(false);
+            setSelectedCategory(null);
+        }
 
         router.delete(categoriesRoutes.destroy(categoryToDelete.id).url, {
             onError: () => setLocalCategories(previous),
@@ -248,7 +257,11 @@ export default function CategoriesIndex() {
                     <TableBody>
                         {localCategories.length > 0 ? (
                             localCategories.map((category) => (
-                                <TableRow key={category.id}>
+                                <TableRow 
+                                    key={category.id}
+                                    className="cursor-pointer hover:bg-muted/50"
+                                    onClick={() => handleRowClick(category)}
+                                >
                                     <TableCell className="font-medium">
                                         {category.id}
                                     </TableCell>
@@ -259,7 +272,7 @@ export default function CategoriesIndex() {
                                     <TableCell>
                                         {formatDate(category.updated_at)}
                                     </TableCell>
-                                    <TableCell className="text-right">
+                                    <TableCell className="text-right" onClick={(e) => e.stopPropagation()}>
                                         <CategoryActions
                                             category={category}
                                             onDelete={handleDelete}
@@ -297,6 +310,14 @@ export default function CategoriesIndex() {
                     </div>
                 </div>
             </div>
+
+            {/* Category Details Sidebar */}
+            <CategoryDetailsSidebar
+                category={selectedCategory}
+                open={isSidebarOpen}
+                onOpenChange={setIsSidebarOpen}
+                onDelete={handleDelete}
+            />
         </AppLayout>
     );
 }
