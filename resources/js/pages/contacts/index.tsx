@@ -1,4 +1,5 @@
 import ContactDetailsSidebar, { Contact } from '@/components/contacts/ContactDetailsSidebar';
+import ContactFormModal, { Category } from '@/components/contacts/ContactFormModal';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Input } from '@/components/ui/input';
@@ -44,6 +45,7 @@ interface Filters {
 
 interface Props extends SharedData {
     contacts: PaginatedResponse<Contact>;
+    categories: Category[];
     filters: Filters;
     canAddContact?: boolean;
 }
@@ -78,7 +80,7 @@ const SortIcon = ({
 };
 
 export default function ContactsIndex() {
-    const { contacts, filters, auth } = usePage<Props>().props;
+    const { contacts, categories, filters, auth } = usePage<Props>().props;
 
     // Calculate canAddContact dynamically based on current subscription status
     const canAddContact = React.useMemo(() => {
@@ -103,9 +105,23 @@ export default function ContactsIndex() {
     const [selectedContact, setSelectedContact] = React.useState<Contact | null>(null);
     const [isSidebarOpen, setIsSidebarOpen] = React.useState(false);
 
+    // Modal state for create/edit
+    const [isFormModalOpen, setIsFormModalOpen] = React.useState(false);
+    const [editingContact, setEditingContact] = React.useState<Contact | null>(null);
+
     const handleRowClick = (contact: Contact) => {
         setSelectedContact(contact);
         setIsSidebarOpen(true);
+    };
+
+    const handleCreateNew = () => {
+        setEditingContact(null);
+        setIsFormModalOpen(true);
+    };
+
+    const handleEdit = (contact: Contact) => {
+        setEditingContact(contact);
+        setIsFormModalOpen(true);
     };
 
     React.useEffect(() => {
@@ -272,7 +288,7 @@ export default function ContactsIndex() {
                             <TooltipTrigger asChild>
                                 <span>
                                     <Button 
-                                        onClick={() => router.get(contactsRoutes.create().url)}
+                                        onClick={handleCreateNew}
                                         disabled={!canAddContact}
                                     >
                                         <Plus className="size-4" />
@@ -509,7 +525,16 @@ export default function ContactsIndex() {
                 onOpenChange={setIsSidebarOpen}
                 onToggleStatus={handleToggleStatus}
                 onDelete={handleDelete}
+                onEdit={handleEdit}
                 isTogglingStatus={selectedContact ? togglingIds.has(selectedContact.id) : false}
+            />
+
+            {/* Contact Form Modal */}
+            <ContactFormModal
+                open={isFormModalOpen}
+                onOpenChange={setIsFormModalOpen}
+                contact={editingContact}
+                categories={categories}
             />
         </AppLayout>
     );

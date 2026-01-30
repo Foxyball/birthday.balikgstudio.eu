@@ -1,5 +1,6 @@
 import UserActions from '@/components/users/UserActions';
 import UserDetailsSidebar from '@/components/users/UserDetailsSidebar';
+import UserFormModal from '@/components/users/UserFormModal';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
@@ -83,6 +84,10 @@ export default function UsersIndex({ users, filters }: Props) {
     const [selectedUser, setSelectedUser] = React.useState<User | null>(null);
     const [isSidebarOpen, setIsSidebarOpen] = React.useState(false);
 
+    // Modal state for create/edit
+    const [isFormModalOpen, setIsFormModalOpen] = React.useState(false);
+    const [editingUser, setEditingUser] = React.useState<User | null>(null);
+
     React.useEffect(() => {
         setLocalUsers(users.data);
     }, [users.data]);
@@ -100,6 +105,16 @@ export default function UsersIndex({ users, filters }: Props) {
     const handleRowClick = (user: User) => {
         setSelectedUser(user);
         setIsSidebarOpen(true);
+    };
+
+    const handleCreateNew = () => {
+        setEditingUser(null);
+        setIsFormModalOpen(true);
+    };
+
+    const handleEdit = (user: User) => {
+        setEditingUser(user);
+        setIsFormModalOpen(true);
     };
 
     const handleToggleLock = async (user: User) => {
@@ -189,7 +204,7 @@ export default function UsersIndex({ users, filters }: Props) {
                 <div className="flex items-center justify-between">
                     <h1 className="text-xl font-semibold">Users</h1>
 
-                    <Button onClick={() => router.get(route('users.create'))}>
+                    <Button onClick={handleCreateNew}>
                         + New User
                     </Button>
                 </div>
@@ -338,7 +353,7 @@ export default function UsersIndex({ users, filters }: Props) {
                                         className="text-right"
                                         onClick={(e) => e.stopPropagation()}
                                     >
-                                        <UserActions user={user} />
+                                        <UserActions user={user} onEdit={handleEdit} />
                                     </TableCell>
                                 </TableRow>
                             ))
@@ -382,7 +397,14 @@ export default function UsersIndex({ users, filters }: Props) {
                 open={isSidebarOpen}
                 onOpenChange={setIsSidebarOpen}
                 onToggleLock={handleToggleLock}
+                onEdit={handleEdit}
                 isTogglingLock={selectedUser ? togglingIds.has(selectedUser.id) : false}
+            />
+
+            <UserFormModal
+                open={isFormModalOpen}
+                onOpenChange={setIsFormModalOpen}
+                user={editingUser}
             />
         </AppLayout>
     );

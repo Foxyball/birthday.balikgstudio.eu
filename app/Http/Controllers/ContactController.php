@@ -43,8 +43,11 @@ class ContactController extends Controller
             ->paginate(20)
             ->withQueryString();
 
+        $categories = Category::all();
+
         return Inertia::render('contacts/index', [
             'contacts' => $contacts,
+            'categories' => $categories,
             'filters' => [
                 'search' => $search,
                 'sort' => $sortField,

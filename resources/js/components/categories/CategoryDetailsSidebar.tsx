@@ -1,6 +1,4 @@
 import { DetailsSidebar, BaseRecord } from '@/components/ui/details-sidebar';
-import { router } from '@inertiajs/react';
-import categories from '@/routes/categories';
 import { FolderIcon } from 'lucide-react';
 
 export interface Category extends BaseRecord {
@@ -15,6 +13,7 @@ interface CategoryDetailsSidebarProps {
     open: boolean;
     onOpenChange: (open: boolean) => void;
     onDelete?: (category: Category) => void;
+    onEdit?: (category: Category) => void;
 }
 
 export default function CategoryDetailsSidebar({
@@ -22,11 +21,14 @@ export default function CategoryDetailsSidebar({
     open,
     onOpenChange,
     onDelete,
+    onEdit,
 }: CategoryDetailsSidebarProps) {
     if (!category) return null;
 
     const handleEdit = () => {
-        router.get(categories.edit(category.id).url);
+        if (onEdit) {
+            onEdit(category);
+        }
     };
 
     return (

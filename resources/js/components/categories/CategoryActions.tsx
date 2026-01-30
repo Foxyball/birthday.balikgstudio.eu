@@ -34,9 +34,10 @@ interface Category {
 interface CategoryActionsProps {
     category: Category;
     onDelete?: (category: Category) => void;
+    onEdit?: (category: Category) => void;
 }
 
-export default function CategoryActions({ category, onDelete }: CategoryActionsProps) {
+export default function CategoryActions({ category, onDelete, onEdit }: CategoryActionsProps) {
     const [open, setOpen] = useState(false);
 
     const [deleting, setDeleting] = useState(false);
@@ -83,11 +84,15 @@ export default function CategoryActions({ category, onDelete }: CategoryActionsP
                             <Button
                                 variant="ghost"
                                 className="w-full justify-start"
-                                onClick={() =>
-                                    router.get(
-                                        categories.edit(category.id).url,
-                                    )
-                                }
+                                onClick={() => {
+                                    if (onEdit) {
+                                        onEdit(category);
+                                    } else {
+                                        router.get(
+                                            categories.edit(category.id).url,
+                                        );
+                                    }
+                                }}
                             >
                                 <EditIcon className="mr-2 h-4 w-4" />
                                 Edit

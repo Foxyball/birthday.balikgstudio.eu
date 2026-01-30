@@ -1,5 +1,6 @@
 import CategoryActions from '@/components/categories/CategoryActions';
 import CategoryDetailsSidebar, { Category } from '@/components/categories/CategoryDetailsSidebar';
+import CategoryFormModal from '@/components/categories/CategoryFormModal';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
@@ -86,6 +87,10 @@ export default function CategoriesIndex() {
     const [selectedCategory, setSelectedCategory] = React.useState<Category | null>(null);
     const [isSidebarOpen, setIsSidebarOpen] = React.useState(false);
 
+    // Modal state for create/edit
+    const [isFormModalOpen, setIsFormModalOpen] = React.useState(false);
+    const [editingCategory, setEditingCategory] = React.useState<Category | null>(null);
+
     const handleRowClick = (category: Category) => {
         setSelectedCategory(category);
         setIsSidebarOpen(true);
@@ -144,6 +149,16 @@ export default function CategoriesIndex() {
         });
     };
 
+    const handleCreateNew = () => {
+        setEditingCategory(null);
+        setIsFormModalOpen(true);
+    };
+
+    const handleEdit = (category: Category) => {
+        setEditingCategory(category);
+        setIsFormModalOpen(true);
+    };
+
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Categories" />
@@ -153,9 +168,7 @@ export default function CategoriesIndex() {
                     <h1 className="text-xl font-semibold">Categories</h1>
 
                     <Button
-                        onClick={() =>
-                            router.get(categoriesRoutes.create().url)
-                        }
+                        onClick={handleCreateNew}
                     >
                         + New Category
                     </Button>
@@ -276,6 +289,7 @@ export default function CategoriesIndex() {
                                         <CategoryActions
                                             category={category}
                                             onDelete={handleDelete}
+                                            onEdit={handleEdit}
                                         />
                                     </TableCell>
                                 </TableRow>
@@ -317,6 +331,14 @@ export default function CategoriesIndex() {
                 open={isSidebarOpen}
                 onOpenChange={setIsSidebarOpen}
                 onDelete={handleDelete}
+                onEdit={handleEdit}
+            />
+
+            {/* Category Form Modal */}
+            <CategoryFormModal
+                open={isFormModalOpen}
+                onOpenChange={setIsFormModalOpen}
+                category={editingCategory}
             />
         </AppLayout>
     );

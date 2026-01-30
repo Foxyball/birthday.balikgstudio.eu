@@ -4,29 +4,14 @@ import { Separator } from '@/components/ui/separator';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { MailIcon, ShieldIcon, CreditCardIcon, ShieldCheckIcon } from 'lucide-react';
-import { router } from '@inertiajs/react';
-import * as users from '@/routes/users';
-
-export interface User extends BaseRecord {
-    id: number;
-    name: string;
-    email: string;
-    avatar?: string;
-    email_verified_at: string | null;
-    role: 0 | 1;
-    is_locked: boolean;
-    subscribed?: boolean;
-    two_factor_enabled?: boolean;
-    created_at: string;
-    updated_at: string;
-    image_url?: string | null;
-}
+import { User } from '@/types';
 
 interface UserDetailsSidebarProps {
     user: User | null;
     open: boolean;
     onOpenChange: (open: boolean) => void;
     onToggleLock?: (user: User) => void;
+    onEdit?: (user: User) => void;
     onDelete?: (user: User) => void;
     isTogglingLock?: boolean;
 }
@@ -36,13 +21,16 @@ export default function UserDetailsSidebar({
     open,
     onOpenChange,
     onToggleLock,
+    onEdit,
     onDelete,
     isTogglingLock = false,
 }: UserDetailsSidebarProps) {
     if (!user) return null;
 
     const handleEdit = () => {
-        router.get(users.edit(user.id).url);
+        if (onEdit) {
+            onEdit(user);
+        }
     };
 
     const handleToggleLock = () => {
