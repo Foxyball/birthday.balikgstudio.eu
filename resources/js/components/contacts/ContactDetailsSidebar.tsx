@@ -4,8 +4,6 @@ import { Separator } from '@/components/ui/separator';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { CalendarIcon, MailIcon, PhoneIcon, TagIcon, GiftIcon, StickyNoteIcon } from 'lucide-react';
-import { router } from '@inertiajs/react';
-import contacts from '@/routes/contacts';
 
 export interface Contact extends BaseRecord {
     id: number;
@@ -33,6 +31,7 @@ interface ContactDetailsSidebarProps {
     open: boolean;
     onOpenChange: (open: boolean) => void;
     onToggleStatus?: (contact: Contact) => void;
+    onEdit?: (contact: Contact) => void;
     onDelete?: (contact: Contact) => void;
     isTogglingStatus?: boolean;
 }
@@ -50,13 +49,16 @@ export default function ContactDetailsSidebar({
     open,
     onOpenChange,
     onToggleStatus,
+    onEdit,
     onDelete,
     isTogglingStatus = false,
 }: ContactDetailsSidebarProps) {
     if (!contact) return null;
 
     const handleEdit = () => {
-        router.get(contacts.edit(contact.id).url);
+        if (onEdit) {
+            onEdit(contact);
+        }
     };
 
     const handleToggleStatus = () => {

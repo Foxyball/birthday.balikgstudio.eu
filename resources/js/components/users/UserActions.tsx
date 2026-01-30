@@ -13,9 +13,10 @@ import { route } from 'ziggy-js';
 
 interface UserActionsProps {
     user: User;
+    onEdit?: (user: User) => void;
 }
 
-export default function UserActions({ user }: UserActionsProps) {
+export default function UserActions({ user, onEdit }: UserActionsProps) {
     return (
         <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -34,9 +35,13 @@ export default function UserActions({ user }: UserActionsProps) {
                         <Button
                             variant="ghost"
                             className="w-full justify-start"
-                            onClick={() =>
-                                router.get(route('users.edit', user.id))
-                            }
+                            onClick={() => {
+                                if (onEdit) {
+                                    onEdit(user);
+                                } else {
+                                    router.get(route('users.edit', user.id));
+                                }
+                            }}
                         >
                             <EditIcon className="mr-2 h-4 w-4" />
                             Edit
