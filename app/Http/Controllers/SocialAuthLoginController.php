@@ -24,7 +24,7 @@ class SocialAuthLoginController extends Controller
             $newUser = User::create([
                 'name' => $user->getName(),
                 'email' => $user->getEmail(),
-                'email_verified_at' => now(),
+                'email_verified_at' => now(), // Mark email as verified only for social logins
             ]);
 
             Auth::login($newUser);
