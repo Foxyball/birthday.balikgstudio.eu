@@ -90,7 +90,7 @@ export default function QuickSearch() {
         setQuery('');
         setResults([]);
         setIsOpen(false);
-        router.get(route('contacts.edit', contact.id));
+        router.get(route('contacts.index', { search: contact.name, selected: contact.id }));
     };
 
     const handleKeyDown = (e: React.KeyboardEvent) => {
