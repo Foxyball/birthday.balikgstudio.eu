@@ -34,7 +34,7 @@ class DatabaseController extends Controller
                 'MYSQL_PWD' => $db['password'],
             ]);
 
-            // Build mysqldump command (password via env var instead of command line)
+            // Build mysqldump command
             $command = [
                 'mysqldump',
                 '--host=' . escapeshellarg($db['host']),
