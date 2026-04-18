@@ -2,9 +2,9 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Builder;
 
 class Notification extends Model
 {
@@ -71,7 +71,7 @@ class Notification extends Model
      */
     public function isRead(): bool
     {
-        return !is_null($this->read_at);
+        return ! is_null($this->read_at);
     }
 
     /**
@@ -79,9 +79,9 @@ class Notification extends Model
      */
     public static function createBirthdayNotification(int $userId, string $contactName, int $contactId, int $daysUntil): self
     {
-        $title = $daysUntil === 0 
-            ? "{$contactName}'s birthday is today!" 
-            : "{$contactName}'s birthday in {$daysUntil} day" . ($daysUntil > 1 ? 's' : '');
+        $title = $daysUntil === 0
+            ? "{$contactName}'s birthday is today!"
+            : "{$contactName}'s birthday in {$daysUntil} day".($daysUntil > 1 ? 's' : '');
 
         return self::create([
             'user_id' => $userId,

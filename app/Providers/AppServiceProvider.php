@@ -4,9 +4,11 @@ namespace App\Providers;
 
 use App\Models\Category;
 use App\Models\Contact;
+use App\Models\DatabaseExport;
 use App\Models\User;
 use App\Observers\CategoryObserver;
 use App\Observers\ContactObserver;
+use App\Observers\DatabaseExportObserver;
 use App\Observers\UserObserver;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\ServiceProvider;
@@ -39,5 +41,6 @@ class AppServiceProvider extends ServiceProvider
         Contact::observe(ContactObserver::class);
         Category::observe(CategoryObserver::class);
         User::observe(UserObserver::class);
+        DatabaseExport::observe(DatabaseExportObserver::class);
     }
 }

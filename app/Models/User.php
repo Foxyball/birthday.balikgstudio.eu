@@ -15,7 +15,7 @@ use Laravel\Fortify\TwoFactorAuthenticatable;
 class User extends Authenticatable implements MustVerifyEmail
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
-    use HasFactory, Notifiable, TwoFactorAuthenticatable, Billable;
+    use Billable, HasFactory, Notifiable, TwoFactorAuthenticatable;
 
     /**
      * The attributes that are mass assignable.
@@ -82,5 +82,13 @@ class User extends Authenticatable implements MustVerifyEmail
     public function contacts(): HasMany
     {
         return $this->hasMany(Contact::class);
+    }
+
+    /**
+     * Check if the user is an admin.
+     */
+    public function isAdmin(): bool
+    {
+        return (int) $this->role === 1;
     }
 }

@@ -1,14 +1,14 @@
 <?php
 
+use App\Http\Middleware\EnsureAdmin;
 use App\Http\Middleware\HandleAppearance;
 use App\Http\Middleware\HandleInertiaRequests;
-use App\Http\Middleware\EnsureAdmin;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Http\Middleware\AddLinkHeadersForPreloadedAssets;
-use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Inertia\Inertia;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -18,7 +18,7 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->trustProxies(at: '*');
-        
+
         $middleware->encryptCookies(except: ['appearance', 'sidebar_state']);
 
         $middleware->web(append: [
@@ -32,7 +32,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'admin' => EnsureAdmin::class,
         ]);
 
-        //Stripe webhook exception
+        // Stripe webhook exception
         $middleware->validateCsrfTokens(except: [
             'stripe/*',
         ]);

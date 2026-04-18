@@ -15,30 +15,30 @@ class SubscriptionController extends Controller
         $yearlyPriceId = config('cashier.prices.stripe_price_yearly');
 
         $stripe = Cashier::stripe();
-        
+
         // Fetch price details from Stripe
         $monthlyPrice = null;
         $yearlyPrice = null;
 
-            if ($monthlyPriceId) {
-                $monthlyStripePrice = $stripe->prices->retrieve($monthlyPriceId);
-                $monthlyPrice = [
-                    'id' => $monthlyPriceId,
-                    'amount' => $monthlyStripePrice->unit_amount / 100, // Convert from cents
-                    'currency' => strtoupper($monthlyStripePrice->currency),
-                    'interval' => $monthlyStripePrice->recurring->interval ?? 'month',
-                ];
-            }
+        if ($monthlyPriceId) {
+            $monthlyStripePrice = $stripe->prices->retrieve($monthlyPriceId);
+            $monthlyPrice = [
+                'id' => $monthlyPriceId,
+                'amount' => $monthlyStripePrice->unit_amount / 100, // Convert from cents
+                'currency' => strtoupper($monthlyStripePrice->currency),
+                'interval' => $monthlyStripePrice->recurring->interval ?? 'month',
+            ];
+        }
 
-            if ($yearlyPriceId) {
-                $yearlyStripePrice = $stripe->prices->retrieve($yearlyPriceId);
-                $yearlyPrice = [
-                    'id' => $yearlyPriceId,
-                    'amount' => $yearlyStripePrice->unit_amount / 100, // Convert from cents
-                    'currency' => strtoupper($yearlyStripePrice->currency),
-                    'interval' => $yearlyStripePrice->recurring->interval ?? 'year',
-                ];
-            }
+        if ($yearlyPriceId) {
+            $yearlyStripePrice = $stripe->prices->retrieve($yearlyPriceId);
+            $yearlyPrice = [
+                'id' => $yearlyPriceId,
+                'amount' => $yearlyStripePrice->unit_amount / 100, // Convert from cents
+                'currency' => strtoupper($yearlyStripePrice->currency),
+                'interval' => $yearlyStripePrice->recurring->interval ?? 'year',
+            ];
+        }
 
         return Inertia::render('subscriptions/index', [
             'prices' => [
@@ -79,7 +79,7 @@ class SubscriptionController extends Controller
             ]);
         } catch (\Exception $e) {
             return response()->json([
-                'error' => 'Failed to create checkout session: ' . $e->getMessage()
+                'error' => 'Failed to create checkout session: '.$e->getMessage(),
             ], 500);
         }
     }
@@ -103,15 +103,15 @@ class SubscriptionController extends Controller
 
         if ($subscription) {
             $stripeSubscription = $subscription->asStripeSubscription();
-            
+
             $subscriptionData = [
                 'name' => $subscription->name,
                 'stripe_status' => $subscription->stripe_status,
                 'stripe_price' => $subscription->stripe_price,
                 'quantity' => $subscription->quantity,
                 'ends_at' => $subscription->ends_at?->toISOString(),
-                'current_period_end' => $stripeSubscription->current_period_end 
-                    ? \Carbon\Carbon::createFromTimestamp($stripeSubscription->current_period_end)->toISOString() 
+                'current_period_end' => $stripeSubscription->current_period_end
+                    ? \Carbon\Carbon::createFromTimestamp($stripeSubscription->current_period_end)->toISOString()
                     : null,
                 'trial_ends_at' => $subscription->trial_ends_at?->toISOString(),
                 'on_grace_period' => $subscription->onGracePeriod(),
@@ -130,7 +130,7 @@ class SubscriptionController extends Controller
         $user = $request->user();
         $subscription = $user->subscription('default');
 
-        if (!$subscription || !$subscription->active()) {
+        if (! $subscription || ! $subscription->active()) {
             return back()->withErrors(['subscription' => 'No active subscription found.']);
         }
 
@@ -144,7 +144,7 @@ class SubscriptionController extends Controller
         $user = $request->user();
         $subscription = $user->subscription('default');
 
-        if (!$subscription || !$subscription->onGracePeriod()) {
+        if (! $subscription || ! $subscription->onGracePeriod()) {
             return back()->withErrors(['subscription' => 'No canceled subscription to resume.']);
         }
 
@@ -152,5 +152,4 @@ class SubscriptionController extends Controller
 
         return back()->with('success', 'Your subscription has been resumed successfully!');
     }
-
 }

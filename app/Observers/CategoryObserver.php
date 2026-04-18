@@ -19,7 +19,7 @@ class CategoryObserver
                 Auth::id(),
                 "Category added: {$category->name}",
                 "You've successfully created a new category.",
-                "/categories?search=" . urlencode($category->name)
+                '/categories?search='.urlencode($category->name)
             );
         }
     }

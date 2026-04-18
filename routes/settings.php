@@ -30,6 +30,7 @@ Route::middleware('auth')->group(function () {
 
     Route::get('settings/sharing', function () {
         $user = Auth::user();
+
         return Inertia::render('settings/sharing', [
             'shareEnabled' => $user->share_enabled,
             'shareToken' => $user->share_token,

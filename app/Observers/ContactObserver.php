@@ -16,7 +16,7 @@ class ContactObserver
             $contact->user_id,
             "Contact added: {$contact->name}",
             "You've successfully added a new contact.",
-            "/contacts?search=" . urlencode($contact->name)
+            '/contacts?search='.urlencode($contact->name)
         );
     }
 }
