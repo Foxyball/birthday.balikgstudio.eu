@@ -38,7 +38,7 @@ export default function ExportDatabaseModal({ open, onOpenChange }: ExportDataba
             });
 
             if (response.ok) {
-                const data = await response.json();
+                await response.json();
                 setSuccess(true);
                 toast.success('Database exported successfully!');
                 
