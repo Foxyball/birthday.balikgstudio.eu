@@ -83,4 +83,12 @@ class User extends Authenticatable implements MustVerifyEmail
     {
         return $this->hasMany(Contact::class);
     }
+
+    /**
+     * Check if the user is an admin.
+     */
+    public function isAdmin(): bool
+    {
+        return (int) $this->role === 1;
+    }
 }

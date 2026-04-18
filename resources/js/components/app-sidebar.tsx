@@ -12,13 +12,15 @@ import {
 import { dashboard } from '@/routes';
 import { type NavItem } from '@/types';
 import {usePage } from '@inertiajs/react';
-import { Folder, LayoutGrid, User, Upload } from 'lucide-react';
+import { Folder, LayoutGrid, User, Upload, Download } from 'lucide-react';
 import { useState } from 'react';
 import AppLogo from './app-logo';
 import ImportContactsModal from './contacts/ImportContactsModal';
+import ExportDatabaseModal from './database/ExportDatabaseModal';
 
 export function AppSidebar() {
     const [importModalOpen, setImportModalOpen] = useState(false);
+    const [exportModalOpen, setExportModalOpen] = useState(false);
     
     type PageProps = { auth?: { user?: { role?: string | number } } };
     const { auth } = usePage<PageProps>().props;
@@ -70,7 +72,7 @@ export function AppSidebar() {
                 <SidebarContent>
                     <NavMain items={mainNavItems} />
                     
-                    {/* Import Section */}
+                    {/* Import/Export Section */}
                     <SidebarMenu className="mt-2 px-2">
                         <SidebarMenuItem>
                             <SidebarMenuButton 
@@ -81,6 +83,17 @@ export function AppSidebar() {
                                 <span>Import</span>
                             </SidebarMenuButton>
                         </SidebarMenuItem>
+                        {isAdmin && (
+                            <SidebarMenuItem>
+                                <SidebarMenuButton 
+                                    onClick={() => setExportModalOpen(true)}
+                                    tooltip="Export Database"
+                                >
+                                    <Download className="h-4 w-4" />
+                                    <span>Export DB</span>
+                                </SidebarMenuButton>
+                            </SidebarMenuItem>
+                        )}
                     </SidebarMenu>
                 </SidebarContent>
 
@@ -92,6 +105,11 @@ export function AppSidebar() {
             <ImportContactsModal 
                 open={importModalOpen} 
                 onOpenChange={setImportModalOpen} 
+            />
+            
+            <ExportDatabaseModal 
+                open={exportModalOpen} 
+                onOpenChange={setExportModalOpen} 
             />
         </>
     );

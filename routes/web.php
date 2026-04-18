@@ -3,6 +3,7 @@
 use App\Http\Controllers\BirthdayShareController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\ContactController;
+use App\Http\Controllers\DatabaseController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\SocialAuthLoginController;
@@ -44,6 +45,10 @@ Route::middleware(['auth', 'verified', 'admin'])->group(function () {
     Route::resource('categories', CategoryController::class);
     Route::resource('users', UserController::class)->except(['destroy', 'show']);
     Route::patch('users/{user}/toggle-lock', [UserController::class, 'toggleLock'])->name('users.toggle-lock');
+    
+    // Database export
+    Route::post('database/export', [DatabaseController::class, 'export'])->name('database.export');
+    Route::get('database/exports/{id}/download', [DatabaseController::class, 'download'])->name('database.exports.download');
 });
 
 Route::middleware(['auth', 'verified'])->group(function () {
