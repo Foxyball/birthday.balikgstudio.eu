@@ -18,6 +18,7 @@
         "laravel/socialite": "^5.24",
         "laravel/tinker": "^2.10.1",
         "laravel/wayfinder": "^0.1.9",
+        "spatie/laravel-backup": "^10.2",
         "stripe/stripe-php": "^17.6",
         "tightenco/ziggy": "^2.6"
     },
