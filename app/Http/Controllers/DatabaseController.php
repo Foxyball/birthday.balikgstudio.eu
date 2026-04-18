@@ -4,8 +4,6 @@ namespace App\Http\Controllers;
 
 use App\Models\DatabaseExport;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Storage;
-use Illuminate\Http\Response;
 use Symfony\Component\Process\Process;
 
 class DatabaseController extends Controller
@@ -17,12 +15,12 @@ class DatabaseController extends Controller
     {
         try {
             $userId = Auth::id();
-            $fileName = 'db_export_' . $userId . '_' . now()->format('Y-m-d_H-i-s') . '.sql';
-            $filePath = 'exports/' . $fileName;
-            $fullPath = storage_path('app/' . $filePath);
+            $fileName = 'db_export_'.$userId.'_'.now()->format('Y-m-d_H-i-s').'.sql';
+            $filePath = 'exports/'.$fileName;
+            $fullPath = storage_path('app/'.$filePath);
 
             // Ensure the exports directory exists
-            if (!is_dir(storage_path('app/exports'))) {
+            if (! is_dir(storage_path('app/exports'))) {
                 mkdir(storage_path('app/exports'), 0755, true);
             }
 
@@ -37,8 +35,8 @@ class DatabaseController extends Controller
             // Build mysqldump command
             $command = [
                 'mysqldump',
-                '--host=' . escapeshellarg($db['host']),
-                '--user=' . escapeshellarg($db['username']),
+                '--host='.escapeshellarg($db['host']),
+                '--user='.escapeshellarg($db['username']),
                 '--single-transaction',
                 '--quick',
                 '--lock-tables=false',
@@ -68,11 +66,11 @@ class DatabaseController extends Controller
                 $returnCode = proc_close($process);
 
                 if ($returnCode !== 0) {
-                    throw new \Exception('Mysqldump error: ' . $stderr);
+                    throw new \Exception('Mysqldump error: '.$stderr);
                 }
 
                 // Write the output to file
-                if (!file_put_contents($fullPath, $stdout)) {
+                if (! file_put_contents($fullPath, $stdout)) {
                     throw new \Exception('Failed to write dump file to storage');
                 }
             } else {
@@ -100,7 +98,7 @@ class DatabaseController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Database export failed: ' . $e->getMessage(),
+                'message' => 'Database export failed: '.$e->getMessage(),
             ], 500);
         }
     }
@@ -111,15 +109,15 @@ class DatabaseController extends Controller
     public function download($id)
     {
         $export = DatabaseExport::findOrFail($id);
-        
+
         // Check authorization - user can only download their own exports
-        if ($export->user_id !== Auth::id() || !Auth::user()->isAdmin()) {
+        if ($export->user_id !== Auth::id() || ! Auth::user()->isAdmin()) {
             abort(403, 'Unauthorized');
         }
 
         // Check if file exists
-        $filePath = storage_path('app/' . $export->file_path);
-        if (!file_exists($filePath)) {
+        $filePath = storage_path('app/'.$export->file_path);
+        if (! file_exists($filePath)) {
             return response()->json([
                 'success' => false,
                 'message' => 'Export file not found',
@@ -132,7 +130,7 @@ class DatabaseController extends Controller
             $export->file_name,
             [
                 'Content-Type' => 'application/sql',
-                'Content-Disposition' => 'attachment; filename=' . $export->file_name,
+                'Content-Disposition' => 'attachment; filename='.$export->file_name,
             ]
         );
     }
@@ -148,6 +146,6 @@ class DatabaseController extends Controller
         $pow = min($pow, count($units) - 1);
         $bytes /= (1 << (10 * $pow));
 
-        return round($bytes, 2) . ' ' . $units[$pow];
+        return round($bytes, 2).' '.$units[$pow];
     }
 }

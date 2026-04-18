@@ -21,8 +21,8 @@ class ImageHelper
     /**
      * Store an uploaded image file or base64 string to disk.
      *
-     * @param \Illuminate\Http\UploadedFile|string|null $image
-     * @param string|null $existingPath Optional existing path to delete if replacing
+     * @param  \Illuminate\Http\UploadedFile|string|null  $image
+     * @param  string|null  $existingPath  Optional existing path to delete if replacing
      * @return string|null The stored file path (relative to disk) or null
      */
     public static function store($image, ?string $existingPath = null): ?string
@@ -38,7 +38,7 @@ class ImageHelper
                 self::delete($existingPath);
             }
 
-            $filename = Str::uuid() . '.' . $image->getClientOriginalExtension();
+            $filename = Str::uuid().'.'.$image->getClientOriginalExtension();
             $path = $image->storeAs(self::$directory, $filename, self::$disk);
 
             return $path;
@@ -52,7 +52,7 @@ class ImageHelper
             }
 
             // If it's already a storage path (not a data URL), return as-is
-            if (!str_starts_with($trimmed, 'data:') && !str_starts_with($trimmed, '/storage/')) {
+            if (! str_starts_with($trimmed, 'data:') && ! str_starts_with($trimmed, '/storage/')) {
                 return $trimmed;
             }
 
@@ -78,8 +78,8 @@ class ImageHelper
                     self::delete($existingPath);
                 }
 
-                $filename = Str::uuid() . '.' . $extension;
-                $path = self::$directory . '/' . $filename;
+                $filename = Str::uuid().'.'.$extension;
+                $path = self::$directory.'/'.$filename;
 
                 Storage::disk(self::$disk)->put($path, $data);
 
@@ -93,8 +93,7 @@ class ImageHelper
     /**
      * Delete an image from storage.
      *
-     * @param string|null $path The path relative to the disk
-     * @return bool
+     * @param  string|null  $path  The path relative to the disk
      */
     public static function delete(?string $path): bool
     {
@@ -117,8 +116,7 @@ class ImageHelper
     /**
      * Get the public URL for a stored image.
      *
-     * @param string|null $path The path relative to the disk
-     * @return string|null
+     * @param  string|null  $path  The path relative to the disk
      */
     public static function url(?string $path): ?string
     {
@@ -136,14 +134,11 @@ class ImageHelper
             return $path;
         }
 
-        return asset('storage/' . $path);
+        return asset('storage/'.$path);
     }
 
     /**
      * Get file extension from mime type.
-     *
-     * @param string $mime
-     * @return string
      */
     protected static function getExtensionFromMime(string $mime): string
     {
@@ -166,9 +161,8 @@ class ImageHelper
      * Converts to data URL - deprecated, use store() instead.
      *
      * @deprecated Use store() instead
-     * @param \Illuminate\Http\UploadedFile|string|null $image
-     * @param string $defaultMime
-     * @return string|null
+     *
+     * @param  \Illuminate\Http\UploadedFile|string|null  $image
      */
     public static function normalize($image, string $defaultMime = 'image/jpeg'): ?string
     {

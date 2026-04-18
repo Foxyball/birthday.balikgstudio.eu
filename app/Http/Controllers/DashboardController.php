@@ -34,6 +34,7 @@ class DashboardController extends Controller
                 $makeDateForYear = function (int $year) use ($birth) {
                     $daysInMonth = Carbon::create($year, $birth->month, 1)->daysInMonth;
                     $day = min($birth->day, $daysInMonth);
+
                     return Carbon::create($year, $birth->month, $day)->startOfDay();
                 };
 

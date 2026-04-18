@@ -2,12 +2,12 @@
 
 namespace App\Console\Commands;
 
-use Illuminate\Console\Command;
+use App\Mail\BirthdayReminderMail;
 use App\Models\Contact;
 use App\Models\User;
-use Illuminate\Support\Facades\Mail;
-use App\Mail\BirthdayReminderMail;
 use Carbon\Carbon;
+use Illuminate\Console\Command;
+use Illuminate\Support\Facades\Mail;
 
 class CheckBirthday extends Command
 {
@@ -41,6 +41,7 @@ class CheckBirthday extends Command
 
         if ($contacts->isEmpty()) {
             $this->info('No birthdays today.');
+
             return 0;
         }
 
@@ -48,19 +49,22 @@ class CheckBirthday extends Command
 
         foreach ($grouped as $userId => $userContacts) {
             $user = User::find($userId);
-            if (!$user || empty($user->email)) {
+            if (! $user || empty($user->email)) {
                 $this->warn("Skipping user {$userId}: missing record or email.");
+
                 continue;
             }
 
             // Skip locked users
             if ($user->is_locked) {
                 $this->warn("Skipping user {$userId}: account is locked.");
+
                 continue;
             }
 
-            $list = $userContacts->map(function (Contact $c) use ($today) {
+            $list = $userContacts->map(function (Contact $c) {
                 $birthday = Carbon::parse($c->birthday);
+
                 return [
                     'name' => $c->name,
                     'date' => $birthday->toFormattedDateString(), // e.g., Dec 23, 2025
@@ -69,7 +73,7 @@ class CheckBirthday extends Command
             })->values()->all();
 
             Mail::to($user->email)->send(new BirthdayReminderMail($user, $list, $today));
-            $this->info("Sent birthday reminder to {$user->email} for " . count($list) . ' contact(s).');
+            $this->info("Sent birthday reminder to {$user->email} for ".count($list).' contact(s).');
         }
 
         return 0;

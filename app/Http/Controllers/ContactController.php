@@ -6,8 +6,8 @@ use App\Helpers\ImageHelper;
 use App\Http\Requests\StoreContactsRequest;
 use App\Models\Category;
 use App\Models\Contact;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
 
 class ContactController extends Controller
@@ -23,7 +23,7 @@ class ContactController extends Controller
 
         // Validate sort field
         $allowedSortFields = ['id', 'name', 'email', 'birthday', 'created_at'];
-        if (!in_array($sortField, $allowedSortFields)) {
+        if (! in_array($sortField, $allowedSortFields)) {
             $sortField = 'created_at';
         }
 
@@ -62,7 +62,7 @@ class ContactController extends Controller
     public function search(Request $request)
     {
         $query = $request->input('q', '');
-        
+
         if (strlen($query) < 2) {
             return response()->json([]);
         }
@@ -124,7 +124,8 @@ class ContactController extends Controller
             'gift_ideas' => $request->gift_ideas,
         ]);
 
-        $success = "Contact created successfully.";
+        $success = 'Contact created successfully.';
+
         return redirect()->route('contacts.index')->with('success', $success);
     }
 
@@ -174,7 +175,7 @@ class ContactController extends Controller
         $request->validate([
             'name' => 'required|string|max:255',
             'category_id' => 'nullable|integer|exists:categories,id',
-            'email' => 'nullable|email|unique:contacts,email,' . $id,
+            'email' => 'nullable|email|unique:contacts,email,'.$id,
             'phone' => 'nullable|string|max:20',
             'birthday' => 'required|date',
             'image' => 'nullable',
@@ -211,6 +212,7 @@ class ContactController extends Controller
         ]);
 
         $success = 'Contact updated successfully.';
+
         return redirect()->route('contacts.index')->with('success', $success);
     }
 
@@ -234,6 +236,7 @@ class ContactController extends Controller
         $contact->delete();
 
         $success = 'Contact deleted successfully.';
+
         return redirect()->route('contacts.index')->with('success', $success);
     }
 
@@ -245,7 +248,7 @@ class ContactController extends Controller
         $contact = Contact::findOrFail($id);
 
         $contact->update([
-            'status' => !$contact->status,
+            'status' => ! $contact->status,
         ]);
 
         return response()->json([
@@ -267,7 +270,7 @@ class ContactController extends Controller
 
         $headers = [
             'Content-Type' => 'text/csv; charset=UTF-8',
-            'Content-Disposition' => 'attachment; filename="contacts_export_' . date('Y-m-d') . '.csv"',
+            'Content-Disposition' => 'attachment; filename="contacts_export_'.date('Y-m-d').'.csv"',
             'Pragma' => 'no-cache',
             'Cache-Control' => 'must-revalidate, post-check=0, pre-check=0',
             'Expires' => '0',
@@ -275,24 +278,25 @@ class ContactController extends Controller
 
         $callback = function () use ($contacts) {
             $file = fopen('php://output', 'w');
-            
+
             // Add UTF-8 BOM for Excel compatibility
             fwrite($file, "\xEF\xBB\xBF");
-            
+
             // Helper function to escape CSV field
             $escapeField = function ($field) {
                 $field = str_replace('"', '""', $field ?? '');
                 // Wrap in quotes if contains comma, newline, or quote
                 if (preg_match('/[,"\r\n]/', $field)) {
-                    return '"' . $field . '"';
+                    return '"'.$field.'"';
                 }
+
                 return $field;
             };
-            
+
             // Header row
             $headers = ['Name', 'Email', 'Phone', 'Birthday', 'Category', 'Status', 'Notes', 'Gift Ideas', 'Created At'];
-            fwrite($file, implode(';', $headers) . "\r\n");
-            
+            fwrite($file, implode(';', $headers)."\r\n");
+
             // Data rows
             foreach ($contacts as $contact) {
                 $row = [
@@ -306,9 +310,9 @@ class ContactController extends Controller
                     $escapeField($contact->gift_ideas),
                     $contact->created_at->format('Y-m-d H:i:s'),
                 ];
-                fwrite($file, implode(';', $row) . "\r\n");
+                fwrite($file, implode(';', $row)."\r\n");
             }
-            
+
             fclose($file);
         };
 
@@ -382,8 +386,9 @@ class ContactController extends Controller
 
         // Read header row
         $header = fgetcsv($handle, 0, $delimiter);
-        if (!$header) {
+        if (! $header) {
             fclose($handle);
+
             return response()->json([
                 'success' => false,
                 'message' => 'CSV file is empty or invalid.',
@@ -391,7 +396,7 @@ class ContactController extends Controller
         }
 
         // Clean up header - remove BOM characters only from first cell
-        if (!empty($header[0])) {
+        if (! empty($header[0])) {
             $header[0] = preg_replace('/^\xEF\xBB\xBF/', '', $header[0]);
         }
 
@@ -399,21 +404,22 @@ class ContactController extends Controller
         $firstCell = trim($header[0] ?? '');
         if (stripos($firstCell, 'sep=') === 0) {
             $header = fgetcsv($handle, 0, $delimiter);
-            if (!$header) {
+            if (! $header) {
                 fclose($handle);
+
                 return response()->json([
                     'success' => false,
                     'message' => 'CSV file is empty or invalid.',
                 ], 422);
             }
             // Clean BOM from new header if present
-            if (!empty($header[0])) {
+            if (! empty($header[0])) {
                 $header[0] = preg_replace('/^\xEF\xBB\xBF/', '', $header[0]);
             }
         }
 
         // Normalize header names
-        $header = array_map(fn($h) => strtolower(trim($h)), $header);
+        $header = array_map(fn ($h) => strtolower(trim($h)), $header);
 
         // Find column indexes
         $nameIndex = array_search('name', $header);
@@ -424,6 +430,7 @@ class ContactController extends Controller
 
         if ($nameIndex === false || $birthdayIndex === false) {
             fclose($handle);
+
             return response()->json([
                 'success' => false,
                 'message' => 'CSV must contain at least "Name" and "Birthday" columns.',
@@ -437,7 +444,7 @@ class ContactController extends Controller
 
         // Cache user's categories by name (case-insensitive)
         $userCategories = Category::pluck('id', 'name')
-            ->mapWithKeys(fn($id, $name) => [strtolower($name) => $id])
+            ->mapWithKeys(fn ($id, $name) => [strtolower($name) => $id])
             ->toArray();
 
         $rowNumber = 1;
@@ -464,33 +471,36 @@ class ContactController extends Controller
             if (empty($name) || empty($birthday)) {
                 $skipped++;
                 $errors[] = "Row {$rowNumber}: Name and Birthday are required.";
+
                 continue;
             }
 
             // Validate birthday format
             $birthdayDate = date_create($birthday);
-            if (!$birthdayDate) {
+            if (! $birthdayDate) {
                 $skipped++;
                 $errors[] = "Row {$rowNumber}: Invalid birthday format.";
+
                 continue;
             }
             $birthday = $birthdayDate->format('Y-m-d');
 
             // Skip duplicate emails for this user
-            if (!empty($email)) {
+            if (! empty($email)) {
                 $existingContact = Contact::where('user_id', $userId)
                     ->where('email', $email)
                     ->first();
                 if ($existingContact) {
                     $skipped++;
                     $errors[] = "Row {$rowNumber}: Email '{$email}' already exists.";
+
                     continue;
                 }
             }
 
             // Resolve category
             $categoryId = null;
-            if (!empty($categoryName)) {
+            if (! empty($categoryName)) {
                 $categoryKey = strtolower(trim($categoryName));
                 $categoryId = $userCategories[$categoryKey] ?? null;
             }
@@ -500,8 +510,8 @@ class ContactController extends Controller
                 'user_id' => $userId,
                 'category_id' => $categoryId,
                 'name' => trim($name),
-                'email' => !empty($email) ? trim($email) : null,
-                'phone' => !empty($phone) ? trim($phone) : null,
+                'email' => ! empty($email) ? trim($email) : null,
+                'phone' => ! empty($phone) ? trim($phone) : null,
                 'birthday' => $birthday,
                 'status' => true,
             ]);
@@ -516,7 +526,7 @@ class ContactController extends Controller
             'imported' => $imported,
             'skipped' => $skipped,
             'errors' => array_slice($errors, 0, 10), // Return first 10 errors
-            'message' => "Imported {$imported} contacts." . ($skipped > 0 ? " Skipped {$skipped} rows." : ''),
+            'message' => "Imported {$imported} contacts.".($skipped > 0 ? " Skipped {$skipped} rows." : ''),
         ]);
     }
 }

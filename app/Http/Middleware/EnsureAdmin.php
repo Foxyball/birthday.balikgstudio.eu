@@ -16,7 +16,7 @@ class EnsureAdmin
     public function handle(Request $request, Closure $next): Response
     {
         $role = $request->user()?->role;
-        if ((string)($role ?? '0') !== '1') {
+        if ((string) ($role ?? '0') !== '1') {
             abort(403, 'This action is unauthorized.');
         }
 

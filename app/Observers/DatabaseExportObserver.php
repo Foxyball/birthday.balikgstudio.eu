@@ -14,8 +14,8 @@ class DatabaseExportObserver
     {
         Notification::createSuccessNotification(
             $databaseExport->user_id,
-            "Database exported successfully",
-            "Your database has been backed up. File size: " . $this->formatBytes($databaseExport->file_size),
+            'Database exported successfully',
+            'Your database has been backed up. File size: '.$this->formatBytes($databaseExport->file_size),
             route('database.exports.download', $databaseExport->id)
         );
     }
@@ -35,7 +35,7 @@ class DatabaseExportObserver
         $pow = min($pow, count($units) - 1);
         $bytes /= (1 << (10 * $pow));
 
-        return round($bytes, 2) . ' ' . $units[$pow];
+        return round($bytes, 2).' '.$units[$pow];
     }
 
     /**

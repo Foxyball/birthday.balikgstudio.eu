@@ -20,7 +20,7 @@ class CategoryController extends Controller
 
         // Validate sort field
         $allowedSortFields = ['id', 'name', 'created_at', 'updated_at'];
-        if (!in_array($sortField, $allowedSortFields)) {
+        if (! in_array($sortField, $allowedSortFields)) {
             $sortField = 'created_at';
         }
 
@@ -63,6 +63,7 @@ class CategoryController extends Controller
         ]);
 
         $success = 'Category created successfully.';
+
         return redirect()->route('categories.index')->with('success', $success);
     }
 
@@ -101,6 +102,7 @@ class CategoryController extends Controller
         ]);
 
         $success = 'Category updated successfully.';
+
         return redirect()->route('categories.index')->with('success', $success);
     }
 
@@ -113,6 +115,7 @@ class CategoryController extends Controller
         $category->delete();
 
         $success = 'Category deleted successfully.';
+
         return redirect()->route('categories.index')->with('success', $success);
     }
 }

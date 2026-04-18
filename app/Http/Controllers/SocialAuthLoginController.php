@@ -10,15 +10,15 @@ class SocialAuthLoginController extends Controller
 {
     public function redirectToGoogle()
     {
-         return Socialite::driver('google')->redirect();
+        return Socialite::driver('google')->redirect();
     }
 
-     public function handleGoogleCallback()
+    public function handleGoogleCallback()
     {
         $user = Socialite::driver('google')->user();
         $existingUser = User::where('email', $user->getEmail())->first();
-        
-       if ($existingUser) {
+
+        if ($existingUser) {
             Auth::login($existingUser);
         } else {
             $newUser = User::create([

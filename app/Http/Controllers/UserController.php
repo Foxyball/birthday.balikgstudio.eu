@@ -21,7 +21,7 @@ class UserController extends Controller
 
         // Validate sort field to prevent SQL injection
         $allowedSortFields = ['id', 'name', 'email', 'created_at', 'updated_at'];
-        if (!in_array($sortField, $allowedSortFields)) {
+        if (! in_array($sortField, $allowedSortFields)) {
             $sortField = 'created_at';
         }
 
@@ -32,7 +32,7 @@ class UserController extends Controller
             ->when($search, function ($query, $search) {
                 $query->where(function ($q) use ($search) {
                     $q->where('name', 'like', "%{$search}%")
-                      ->orWhere('email', 'like', "%{$search}%");
+                        ->orWhere('email', 'like', "%{$search}%");
                 });
             })
             ->orderBy($sortField, $sortDirection)
@@ -70,6 +70,7 @@ class UserController extends Controller
         ]);
 
         $success = 'User created successfully.';
+
         return redirect()->route('users.index')->with('success', $success);
     }
 
@@ -100,7 +101,7 @@ class UserController extends Controller
     {
         $request->validate([
             'name' => 'required|string|max:255',
-            'email' => 'required|email|unique:users,email,' . $id,
+            'email' => 'required|email|unique:users,email,'.$id,
             'password' => 'nullable|string|min:8|confirmed',
             'role' => 'required|integer|in:0,1',
         ]);
@@ -120,6 +121,7 @@ class UserController extends Controller
         $user->update($userData);
 
         $success = 'User updated successfully.';
+
         return redirect()->route('users.index')->with('success', $success);
     }
 
@@ -129,9 +131,9 @@ class UserController extends Controller
     public function toggleLock(Request $request, string $id)
     {
         $user = User::findOrFail($id);
-        
+
         $user->update([
-            'is_locked' => !$user->is_locked,
+            'is_locked' => ! $user->is_locked,
         ]);
 
         return response()->json([

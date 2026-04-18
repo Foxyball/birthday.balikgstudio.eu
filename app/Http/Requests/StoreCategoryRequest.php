@@ -31,7 +31,7 @@ class StoreCategoryRequest extends FormRequest
         return [
             'catName.required' => 'The category name field is required.',
             'catName.string' => 'The category name must be a string.',
-            'catName.max' => 'The category name may not be greater than 40 characters.'
+            'catName.max' => 'The category name may not be greater than 40 characters.',
         ];
     }
 }

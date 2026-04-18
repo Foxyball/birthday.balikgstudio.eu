@@ -19,7 +19,7 @@ class BirthdayShareController extends Controller
             ->where('share_enabled', true)
             ->first();
 
-        if (!$user) {
+        if (! $user) {
             abort(404, 'Birthday page not found or sharing is disabled.');
         }
 
@@ -52,23 +52,23 @@ class BirthdayShareController extends Controller
     public function toggle(Request $request)
     {
         $user = Auth::user();
-        
+
         $request->validate([
             'enabled' => 'required|boolean',
         ]);
 
         $shareEnabled = $request->boolean('enabled');
-        
+
         // Generate token if enabling and no token exists
-        if ($shareEnabled && !$user->share_token) {
+        if ($shareEnabled && ! $user->share_token) {
             $user->share_token = Str::random(32);
         }
 
         $user->share_enabled = $shareEnabled;
         $user->save();
 
-        return back()->with('success', $shareEnabled 
-            ? 'Birthday sharing enabled.' 
+        return back()->with('success', $shareEnabled
+            ? 'Birthday sharing enabled.'
             : 'Birthday sharing disabled.');
     }
 
